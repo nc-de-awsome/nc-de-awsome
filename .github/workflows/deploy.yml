@@ -14,17 +14,17 @@ jobs:
     steps:
       - name: Checkout Repo
         uses: actions/checkout@v3
-      - name: Use Python
+      - name: Get Python
         uses: actions/setup-python@v4
         with:
           python-version: '3.9'
-      - name: Use make
+      - name: Get Make
         run: sudo apt install make -y
       - name: Install Application Requirements
         run: make requirements
       - name: Install Dev Dependencies
         run: make dev-setup
-      - name: Run Checks
+      - name: Run All Checks
         run: make run-checks
 
   deployment:
@@ -42,28 +42,28 @@ jobs:
           aws-region: us-east-1
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
-      - name: Terraform init for S3 state file bucket
+      - name: Terraform Init for S3 State File Bucket
         run: terraform init
         working-directory: ./state
-      - name: Terraform Plan for S3 state file bucket
+      - name: Terraform Plan for S3 State File Bucket
         id: plan
         run: terraform plan
         working-directory: ./state
-      - name: Tarraform Plan Status for S3 state file bucket
+      - name: Terraform Plan Status for S3 State File Bucket
         if: steps.plan.outcome == 'failure'
         run: exit 1
         working-directory: ./state
-      - name: Terraform Apply for S3 state file bucket
+      - name: Terraform Apply for S3 State File Bucket
         run: terraform apply -auto-approve
         working-directory: ./state
-      - name: Terraform init
+      - name: Terraform Init
         run: terraform init
         working-directory: ./terraform
       - name: Terraform Plan
         id: plan
         run: terraform plan
         working-directory: ./terraform
-      - name: Tarraform Plan Status
+      - name: Terraform Plan Status
         if: steps.plan.outcome == 'failure'
         run: exit 1
         working-directory: ./terraform
