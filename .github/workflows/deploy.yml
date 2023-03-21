@@ -1,0 +1,72 @@
+---
+
+name: deploy-data-platform
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  run-tests:
+    name: run-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+      - name: Get Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      - name: Get Make
+        run: sudo apt install make -y
+      - name: Install Application Requirements
+        run: make requirements
+      - name: Install Dev Dependencies
+        run: make dev-setup
+      - name: Run All Checks
+        run: make run-checks
+
+  deployment:
+    name: deploy-dev
+    needs: run-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.ENV_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.ENV_SECRET_KEY }}
+          aws-region: us-east-1
+      - name: Install Terraform
+        uses: hashicorp/setup-terraform@v2
+      - name: Terraform Init for S3 State File Bucket
+        run: terraform init
+        working-directory: ./state
+      - name: Terraform Plan for S3 State File Bucket
+        id: plan
+        run: terraform plan
+        working-directory: ./state
+      - name: Terraform Plan Status for S3 State File Bucket
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+        working-directory: ./state
+      - name: Terraform Apply for S3 State File Bucket
+        run: terraform apply -auto-approve
+        working-directory: ./state
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./terraform
+      - name: Terraform Plan
+        id: plan
+        run: terraform plan
+        working-directory: ./terraform
+      - name: Terraform Plan Status
+        if: steps.plan.outcome == 'failure'
+        run: exit 1
+        working-directory: ./terraform
+      - name: Terraform Apply
+        run: terraform apply -auto-approve
+        working-directory: ./terraform
