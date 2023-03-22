@@ -1,5 +1,4 @@
 ---
-
 name: deploy-data-platform
 
 on:
@@ -17,7 +16,7 @@ jobs:
       - name: Get Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: "3.9"
       - name: Get Make
         run: sudo apt install make -y
       - name: Install Application Requirements
