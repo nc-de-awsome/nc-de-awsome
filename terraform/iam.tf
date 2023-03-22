@@ -36,7 +36,7 @@ resource "aws_iam_role" "lambda_ingest_role" {
         {
             "Effect": "Allow",
             "Action": [
-                "sts:AssumeRole",
+                "sts:AssumeRole"
             ],
             "Principal": {
                 "Service": [
@@ -46,18 +46,7 @@ resource "aws_iam_role" "lambda_ingest_role" {
         }
     ]
     
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": [
-                "rds-db:connect"
-            ],
-            "Resource": [
-                "arn:aws:rds-db:${data.aws_region.current_region.name}:${data.aws_caller_identity.current_account.account_id}:dbuser:
-            ]
-        }
-    ]
-
+    
 }
 EOF
 }
@@ -85,3 +74,15 @@ resource "aws_iam_role_policy_attachment" "cw_ingest_policy_attachment" {
 # }
 
 
+# DRAFT CODE FOR RDS PERMISSION(ADD TO IAM ROLE)**
+#"Statement": [
+#         {
+#             "Effect": "Allow",
+#             "Action": [
+#                 "rds-db:connect"
+#             ],
+#             "Resource": [
+#                 "arn:aws:rds-db:${data.aws_region.current_region.name}:${data.aws_caller_identity.current_account.account_id}:dbuser:
+#             ]
+#         }
+#     ]
