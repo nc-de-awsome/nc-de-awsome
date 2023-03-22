@@ -23,4 +23,13 @@ Here are some ideas to get you started:
    ```
 
    This creates venv and installs project requirements.
-3. Deployment of AWS resources are automated using GitHub Actions.
+
+3. Following this, in the terminal, navigate to the root directory of the project, and run:
+
+   ```bash
+   sh state.sh
+   ```
+
+   THis creates an s3 bucket that will store the terraform state file remotely.
+
+4. Deployment of AWS resources are automated using GitHub Actions.

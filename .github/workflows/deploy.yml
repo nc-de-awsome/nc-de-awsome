@@ -1,5 +1,4 @@
 ---
-
 name: deploy-data-platform
 
 on:
@@ -17,7 +16,7 @@ jobs:
       - name: Get Python
         uses: actions/setup-python@v4
         with:
-          python-version: '3.9'
+          python-version: "3.9"
       - name: Get Make
         run: sudo apt install make -y
       - name: Install Application Requirements
@@ -42,20 +41,6 @@ jobs:
           aws-region: us-east-1
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
-      - name: Terraform Init for S3 State File Bucket
-        run: terraform init
-        working-directory: ./state
-      - name: Terraform Plan for S3 State File Bucket
-        id: plan-state-bucket
-        run: terraform plan
-        working-directory: ./state
-      - name: Terraform Plan Status for S3 State File Bucket
-        if: steps.plan.outcome == 'failure'
-        run: exit 1
-        working-directory: ./state
-      - name: Terraform Apply for S3 State File Bucket
-        run: terraform apply -auto-approve
-        working-directory: ./state
       - name: Terraform Init
         run: terraform init
         working-directory: ./terraform
