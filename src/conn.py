@@ -43,3 +43,5 @@ def connect_to_database(db_name):
         port=get_port(), 
         password=get_db_password(db_name)
         )
+
+    
