@@ -46,7 +46,7 @@ jobs:
         run: terraform init
         working-directory: ./state
       - name: Terraform Plan for S3 State File Bucket
-        id: plan
+        id: plan-state-bucket
         run: terraform plan
         working-directory: ./state
       - name: Terraform Plan Status for S3 State File Bucket

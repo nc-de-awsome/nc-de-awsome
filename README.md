@@ -16,8 +16,11 @@ Here are some ideas to get you started:
 -->
 
 1. Fork and clone this project.
-1. In the terminal, navigate to the root directory of the project, and run:
+2. In the terminal, navigate to the root directory of the project, and run:
+
    ```bash
    sh setup.sh
    ```
+
    This creates venv and installs project requirements.
+3. Deployment of AWS resources are automated using GitHub Actions.
