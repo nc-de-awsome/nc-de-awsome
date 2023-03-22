@@ -45,6 +45,8 @@ resource "aws_iam_role" "lambda_ingest_role" {
             }
         }
     ]
+    
+    
 }
 EOF
 }
@@ -52,9 +54,35 @@ resource "aws_iam_role_policy_attachment" "s3_ingest_policy_attachment" {
     role = aws_iam_role.lambda_ingest_role.name
     policy_arn = aws_iam_policy.s3_policy_ingest.arn
 }
-
 resource "aws_iam_role_policy_attachment" "cw_ingest_policy_attachment" {
     role = aws_iam_role.lambda_ingest_role.name
     policy_arn = aws_iam_policy.cw_policy.arn
 }
+# data "aws_iam_policy_document" "eventbridge_document" {
+#     statement {
+#         actions = ["events:EnableRule"]
+#         resources = [xxxxx arn from evenbridge rule]
+#         }
+# }
+# resource "aws_iam_policy" "eventbridge_policy" {
+#     name_prefix = "eventbridge-policy"
+#     policy = data.aws_iam_policy_document.eventbridge_document.json
+# }
+# resource "aws_iam_role_policy_attachment" "eventbridge_policy_attachment" {
+#     role = aws_iam_role.lambda_ingest_role.name
+#     policy_arn = aws_iam_policy.eventbridge_policy.arn
+# }
 
+
+# DRAFT CODE FOR RDS PERMISSION(ADD TO IAM ROLE)**
+#"Statement": [
+#         {
+#             "Effect": "Allow",
+#             "Action": [
+#                 "rds-db:connect"
+#             ],
+#             "Resource": [
+#                 "arn:aws:rds-db:${data.aws_region.current_region.name}:${data.aws_caller_identity.current_account.account_id}:dbuser:
+#             ]
+#         }
+#     ]
