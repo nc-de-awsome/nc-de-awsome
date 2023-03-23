@@ -4,25 +4,16 @@
 import pg8000.native
 from dotenv import load_dotenv
 import os
+from deploy_ingestion_lambda.src.errors import DatabaseConnectionError
 
-def get_db_password(database_name):
-    '''Returns the password for database_name'''
-    load_dotenv()
-    lookup = {
-        'totesys': 'totesys_password',
-        'dw': 'dw_password'
-    }   
-    return os.getenv(lookup[database_name])
+def get_db_password():
+    load_dotenv()  
+    return os.getenv('password')
 
 
-def get_db_name(database_name):
-    '''Returns the database name for database_name'''
-    load_dotenv()
-    lookup = {
-        'totesys': 'totesys_db_name',
-        'dw': 'dw_db_name'
-    }   
-    return os.getenv(lookup[database_name])
+def get_db_name():
+    load_dotenv() 
+    return os.getenv('db_name')
 
 def get_username():
     load_dotenv()
@@ -40,12 +31,15 @@ def get_region():
     load_dotenv()
     return os.getenv('region')
 
-def connect_to_database(database_name):
+def connect_to_database():
     '''Establishes and returns a native pg8000 connection to database_name'''
-    return  pg8000.native.Connection(
-        user=get_username(), 
-        host=get_host(), 
-        database=get_db_name(database_name), 
-        port=get_port(), 
-        password=get_db_password(database_name)
-    )
+    try:
+        return  pg8000.native.Connection(
+            user=get_username(), 
+            host=get_host(), 
+            database=get_db_name(), 
+            port=get_port(), 
+            password=get_db_password()
+        )
+    except:
+        raise DatabaseConnectionError('Unable to connect to Totesys database')
