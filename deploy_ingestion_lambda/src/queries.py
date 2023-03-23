@@ -1,4 +1,5 @@
 import json
+import boto3
 
 def get_all_table_names(conn):
     '''Returns a list of table_name strings of each table in Totesys database
@@ -76,4 +77,14 @@ def list_of_dictionaries_to_json(list_of_dicts):
     '''
     return json.dumps(list_of_dicts, indent=4, default=str)
 
+def writes_json_to_s3_bucket(json_string, bucket, key):
+    s3 = boto3.client('s3')
 
+    reponse = None
+    try:
+        reponse = s3.put_object(Body=json_string, Bucket=bucket, Key=key)
+    except:
+        pass
+
+    print(reponse)
+    # return reponse['HTTPStatus'] == '200'
