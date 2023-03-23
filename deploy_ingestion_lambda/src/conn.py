@@ -1,35 +1,30 @@
 '''
-    conn.py contains utility functions which load the required credentials to access the databases from a secrets manager/.env
+    conn.py contains utility functions which load the required credentials to access the Totesys database from GitHub secrets
 '''
 import pg8000.native
-from dotenv import load_dotenv
 import os
 from deploy_ingestion_lambda.src.errors import DatabaseConnectionError
 
-def get_db_password():
-    load_dotenv()  
-    return os.getenv('password')
+def get_secret(key):
+    return os.environ[key]
 
+def get_db_password():
+    return get_secret('TOTESYS_PASSWORD')
 
 def get_db_name():
-    load_dotenv() 
-    return os.getenv('db_name')
+    return get_secret('TOTESYS_DATABASE_NAME')
 
 def get_username():
-    load_dotenv()
-    return os.getenv('username')
+    return get_secret('TOTESYS_USERNAME')
 
 def get_host():
-    load_dotenv()
-    return os.getenv('host')
+    return get_secret('TOTESYS_HOST')
 
 def get_port():
-    load_dotenv()
-    return os.getenv('port')
+    return get_secret('TOTESYS_PORT')
 
 def get_region():
-    load_dotenv()
-    return os.getenv('region')
+    return get_secret('TOTESYS_REGION')
 
 def connect_to_database():
     '''Establishes and returns a native pg8000 connection to database_name'''
