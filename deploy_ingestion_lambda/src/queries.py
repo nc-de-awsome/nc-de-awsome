@@ -1,4 +1,6 @@
 import json
+import boto3
+from deploy_ingestion_lambda.src.errors import WriteError, SelectQueryError
 
 def get_all_table_names(conn):
     '''Returns a list of table_name strings of each table in Totesys database
@@ -9,11 +11,14 @@ def get_all_table_names(conn):
         returns:
             list of strings 
     '''
-    tables = conn.run("SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema='public';")
-    table_names = [table[0] for table in tables]
-    return table_names
+    try:
+        tables = conn.run("SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema='public';")
+        table_names = [table[0] for table in tables]
+        return table_names
+    except:
+        raise SelectQueryError('Unable to select table_names from totesys')
 
-def get_table_column_names(conn, table_name):
+def _get_table_column_names(conn, table_name):
     '''Returns a list of column_name strings in table_name
 
         parameters:
@@ -23,11 +28,14 @@ def get_table_column_names(conn, table_name):
         returns:
             list of strings 
     '''
-    columns = conn.run(f"SELECT column_name FROM information_schema.columns WHERE table_name = '{table_name}' AND table_schema='public';")
-    column_names = [column_name[0] for column_name in columns]
-    return column_names
+    try:
+        columns = conn.run(f"SELECT column_name FROM information_schema.columns WHERE table_name = '{table_name}' AND table_schema='public';")
+        column_names = [column_name[0] for column_name in columns]
+        return column_names
+    except:
+        raise SelectQueryError(f'Unable to get columns from {table_name}')
 
-def get_table_values(conn, table_name):
+def _get_table_values(conn, table_name):
     '''Returns a list of lists of values in table_name
     
         parameters:
@@ -37,8 +45,11 @@ def get_table_values(conn, table_name):
         returns:
             list of strings 
     '''
-    values = conn.run(f'SELECT * FROM {table_name};')
-    return values
+    try:
+        values = conn.run(f'SELECT * FROM {table_name};')
+        return values
+    except:
+        raise SelectQueryError(f'Unable to select values from {table_name}')
 
 def create_list_of_dictionaries(conn, table_name):
     '''Returns a list of dicts of column/value pairs from table_name
@@ -51,8 +62,8 @@ def create_list_of_dictionaries(conn, table_name):
             list of dicts 
 
     '''
-    columns = get_table_column_names(conn, table_name)
-    values = get_table_values(conn, table_name)
+    columns = _get_table_column_names(conn, table_name)
+    values = _get_table_values(conn, table_name)
     
     column_value_pairs = []
 
@@ -75,5 +86,14 @@ def list_of_dictionaries_to_json(list_of_dicts):
             JSON (string)
     '''
     return json.dumps(list_of_dicts, indent=4, default=str)
+
+def write_json_to_bucket(json, bucket_name, key):
+    response = None
+    try:
+        s3 = boto3.client('s3')
+        response = s3.put_object(Body=json, Bucket=bucket_name, Key=key)
+    except:
+        raise WriteError('Unable to write JSON to S3 bucket')
+    return response
 
 
