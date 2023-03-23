@@ -1,6 +1,6 @@
 variable "ingestion_lambda_name" {
     type = string
-    default = "xxxxxxxxxxxxxx" # to be replaced with lambda ingestion function.
+    default = "ingestion-lambda"
 }
 
 variable "metric_namespace" {
@@ -8,7 +8,17 @@ variable "metric_namespace" {
     default = "CustomMetrics"
 }
 
-variable "ingestion_db_connection_error_metric_name" {
+variable "db_connection_error_metric_name" {
     type = string
     default = "DatabaseConnectionErrorCount"
+}
+
+variable "ingestion_error_metric_name" {
+    type = string
+    default = "IngestionErrorCount"
+}
+
+variable "write_error_metric_name" {
+    type = string
+    default = "WriteErrorCount"
 }
