@@ -4,9 +4,11 @@
 import pg8000.native
 import os
 from deploy_ingestion_lambda.src.errors import DatabaseConnectionError
+import boto3
 
 def get_secret(key):
-    return os.environ[key]
+    sm = boto3.client('secretsmanager')
+    return sm.get_secret_value(SecretId = key)
 
 def get_db_password():
     return get_secret('TOTESYS_PASSWORD')
