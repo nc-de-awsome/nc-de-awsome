@@ -1,5 +1,6 @@
 resource "aws_lambda_function" "ingest_lambda" {
-    filename = "${path.module}/../deployment_requirements.zip"
+    # filename = "${path.module}/../deployment_requirements.zip"
+    filename = data.aws_s3_bucket_object.lambda_code_deployment.id
     function_name = var.ingestion_lambda_name
     role = aws_iam_role.lambda_ingest_role.arn
     handler = "deployment_requirements.lambda_handler.ingest"
