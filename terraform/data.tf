@@ -6,5 +6,19 @@ data "archive_file" "ingestion-lambda" {
     type = "zip"
     output_path = "${path.module}/../deploy_ingestion_lambda.zip"
     source_dir = "${path.module}/../deploy_ingestion_lambda"
-    excludes = "${path.module}/../deployment_ingestion_lambda/test.zip"
+
+    excludes    = [
+    "__pycache__",
+    "src/__pycache__",
+    "tests/__pycache__",
+    "tests"
+  ]
+
+    depends_on = [null_resource.install_dependencies]
+}
+
+resource "null_resource" "install_dependencies" {
+  provisioner "local-exec" {
+    command = "pip install -r ${path.module}/../requirements.txt -t ${path.module}/../deploy_ingestion_lambda/ --upgrade"
+  }
 }
