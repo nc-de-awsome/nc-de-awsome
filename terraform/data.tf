@@ -11,7 +11,8 @@ data "archive_file" "ingestion-lambda" {
     "__pycache__",
     "src/__pycache__",
     "tests/__pycache__",
-    "tests"
+    "tests",
+    "src"
   ]
 
     depends_on = [null_resource.install_dependencies]
