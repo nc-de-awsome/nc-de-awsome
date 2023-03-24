@@ -31,6 +31,12 @@ jobs:
     needs: run-tests
     runs-on: ubuntu-latest
     steps:
+      - name: Get Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+      - name: Get Make
+        run: sudo apt install make -y
       - name: Checkout Repo
         uses: actions/checkout@v3
       - name: configure aws credentials
@@ -39,6 +45,15 @@ jobs:
           aws-access-key-id: ${{ secrets.ENV_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.ENV_SECRET_KEY }}
           aws-region: us-east-1
+      - name: Create AWS secrets manager with Totesys creds
+        env: 
+            TOTESYS_USERNAME: ${{ secrets.TOTESYS_USERNAME }}
+            TOTESYS_DATABASE_NAME: ${{ secrets.TOTESYS_DATABASE_NAME }}
+            TOTESYS_HOST: ${{ secrets.TOTESYS_HOST }}
+            TOTESYS_PASSWORD: ${{ secrets.TOTESYS_PASSWORD }}
+            TOTESYS_PORT: ${{ secrets.TOTESYS_PORT }}
+            TOTESYS_REGION: ${{ secrets.TOTESYS_REGION }}
+        run: make aws_secrets
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
       - name: Terraform Init
