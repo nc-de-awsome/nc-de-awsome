@@ -2,14 +2,14 @@
 # from deploy_ingestion_lambda.src.queries import *
 # from deploy_ingestion_lambda.src.errors import IngestionError
 print('are we here?')
-
+import platform
+print('version: ',platform.python_version())
 import json
 print('how about here?')
 
 import boto3
 print('and now?')
 import pg8000.native
-
 def ingest(event, context):
     try:
         conn = connect_to_database()
