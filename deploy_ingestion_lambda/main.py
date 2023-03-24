@@ -7,7 +7,7 @@ import json
 import pg8000.native
 import boto3
 
-def ingest():
+def ingest(event, context):
     try:
         conn = connect_to_database()
         table_names = get_all_table_names(conn)
