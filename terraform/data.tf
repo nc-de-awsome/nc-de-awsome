@@ -15,12 +15,12 @@ data "archive_file" "ingestion-lambda" {
     "src"
   ]
 
-
     depends_on = [null_resource.install_dependencies]
 }
 
 resource "null_resource" "install_dependencies" {
   provisioner "local-exec" {
-    command = "pip install -r ${path.module}/../requirements.txt -t ${path.module}/../deploy_ingestion_lambda/ --upgrade"
+    command = "pip install -r ${path.module}/../requirements.txt -t ${path.module}/../deploy_ingestion_lambda/lib/python3.9/site-packages/ --upgrade"
   }
 }
+
