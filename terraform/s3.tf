@@ -8,6 +8,6 @@ resource "aws_s3_bucket" "processed_zone" {
 
 resource "aws_s3_object_copy" "lambda_code_deployment" {
   bucket = "nc-de-awsome-state"
-  key    = "deployment_requirements.zip"
+  key    = "${path.module}/../deployment_requirements.zip"
   source = "${path.module}/../deployment_requirements.zip"
 }
