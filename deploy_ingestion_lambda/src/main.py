@@ -1,8 +1,10 @@
 # from deploy_ingestion_lambda.src.conn import connect_to_database
 # from deploy_ingestion_lambda.src.queries import *
 # from deploy_ingestion_lambda.src.errors import IngestionError
-import pg8000.native
+print('are we here?')
+
 import json
+import pg8000.native
 import boto3
 
 def ingest():
