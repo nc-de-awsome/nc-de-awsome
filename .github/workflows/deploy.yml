@@ -39,8 +39,8 @@ jobs:
           python-version: "3.9"
       - name: Get Make
         run: sudo apt install make -y
-      # - name: Install Application Requirements
-      #   run: make requirements
+      - name: Install Application Requirements
+        run: make requirements
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:
