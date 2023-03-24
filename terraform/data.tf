@@ -15,6 +15,7 @@ data "archive_file" "ingestion-lambda" {
     "src"
   ]
 
+
     depends_on = [null_resource.install_dependencies]
 }
 
