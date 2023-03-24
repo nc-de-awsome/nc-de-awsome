@@ -4,6 +4,8 @@
 print('are we here?')
 
 import json
+print('how about here?')
+
 import pg8000.native
 import boto3
 
