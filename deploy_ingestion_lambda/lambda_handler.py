@@ -20,7 +20,7 @@ def ingest(event, context):
             rows = create_list_of_dictionaries(conn, table)
             print(f'the first tow of {table}: {rows[0]}')
             json = list_of_dictionaries_to_json(rows)
-            write_json_to_bucket(json, 'nc-de-awsome-ingestion-zone', f'totesys/{table}.json' )
+            # write_json_to_bucket(json, 'nc-de-awsome-ingestion-zone', f'totesys/{table}.json' )
         conn.close()
     except Exception as e:
         raise IngestionError(f'{e}')
@@ -64,13 +64,33 @@ def get_region():
 
 def connect_to_database():
     '''Establishes and returns a native pg8000 connection to database_name'''
+    try: _user=get_username()
+    except: raise DatabaseConnectionError('Unable to get_username()')
+    
+    try: _host=get_host()
+    except: raise DatabaseConnectionError('Unable to get_host()')
+    
+    try : _database=get_db_name()
+    except: raise DatabaseConnectionError('Unable to get_db_name()')
+
+    try : _port=get_port()
+    except: raise DatabaseConnectionError('Unable to get_port()')
+
+    try : _password=get_db_password()
+    except: raise DatabaseConnectionError('Unable to get_password()')
+   
     try:
         return  pg8000.native.Connection(
-            user=get_username(), 
-            host=get_host(), 
-            database=get_db_name(), 
-            port=get_port(), 
-            password=get_db_password()
+            user=_user,
+            host =_host,
+            database = _database,
+            port = _port,
+            password=_password
+    #       user=get_username(), 
+    #       host=get_host(), 
+    #       database=get_db_name(), 
+    #       port=get_port(), 
+    #       password=get_db_password()
         )
     except:
         raise DatabaseConnectionError('Unable to connect to Totesys database')
