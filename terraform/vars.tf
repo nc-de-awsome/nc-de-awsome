@@ -12,3 +12,8 @@ variable "ingestion_error_metric_name" {
     type = string
     default = "IngestionErrorCount"
 }
+
+variable "process_lambda_name" {
+    type = string
+    default = "process-lambda"
+}
