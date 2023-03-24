@@ -1,5 +1,5 @@
 resource "aws_lambda_function" "ingest_lambda" {
-    filename = "${path.module}/../ingestion-function.zip"
+    filename = "${path.module}/../deploy_ingestion_lambda.zip"
     function_name = var.ingestion_lambda_name
     role = aws_iam_role.lambda_ingest_role.arn
     handler = "main.ingest"
