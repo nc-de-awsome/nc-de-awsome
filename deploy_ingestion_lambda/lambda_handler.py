@@ -6,8 +6,9 @@ print('are we here?')
 import json
 print('how about here?')
 
-import pg8000.native
 import boto3
+print('and now?')
+import pg8000.native
 
 def ingest(event, context):
     try:
