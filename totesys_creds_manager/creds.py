@@ -3,8 +3,13 @@ import boto3
 
 def create_secret(secret_key, secret_value):
     sm = boto3.client('secretsmanager')
-    sm.create_secret(Name=secret_key, SecretString=secret_value, ForceOverwriteReplicaSecret=True)
 
+    response = sm.list_secrets()
+    secrets =[ s['Name'] for s in response['SecretList'] ]
+
+    if secret_key not in secrets:
+        sm.create_secret(Name=secret_key, SecretString=secret_value)
+        
 totesys_password = os.environ['TOTESYS_PASSWORD']
 totesys_username = os.environ['TOTESYS_USERNAME']
 totesys_database_name = os.environ['TOTESYS_DATABASE_NAME'] 
