@@ -10,7 +10,7 @@ resource "aws_s3_bucket" "lambda_bucket" {
   bucket = "nc-de-awsome-code-bucket"
 }
 
-resource "aws_s3_object_copy" "lambda_code_deployment" {
+resource "aws_s3_bucket_object" "lambda_code_deployment" {
   bucket = aws_s3_bucket.lambda_bucket.bucket
   key    = "deployment_requirements.zip"
   source = "${path.module}/../deployment_requirements.zip"
