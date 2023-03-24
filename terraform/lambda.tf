@@ -2,7 +2,7 @@ resource "aws_lambda_function" "ingest_lambda" {
     filename = "${path.module}/../deploy_ingestion_lambda.zip"
     function_name = var.ingestion_lambda_name
     role = aws_iam_role.lambda_ingest_role.arn
-    handler = "ingest_lambda.src.main.ingest"
+    handler = "deploy_ingestion_lambda.src.main.ingest"
     runtime = "python3.9"
     source_code_hash = data.archive_file.ingestion-lambda.output_base64sha256
 }
