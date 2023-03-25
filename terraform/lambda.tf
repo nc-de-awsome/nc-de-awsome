@@ -3,7 +3,7 @@ resource "aws_lambda_function" "ingest_lambda" {
     s3_bucket = aws_s3_bucket.lambda_bucket.bucket
     s3_key = aws_s3_bucket_object.lambda_code_deployment.key
     function_name = var.ingestion_lambda_name
-    role = aws_iam_role.lambda_ingest_role.arn
+    role = aws_iam_role.lambda_ingest_role_2.arn
     handler = "lambda_handler.ingest"
     runtime = "python3.9"
     source_code_hash = data.archive_file.ingestion-lambda.output_base64sha256
