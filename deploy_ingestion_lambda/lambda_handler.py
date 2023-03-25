@@ -39,32 +39,38 @@ class SelectQueryError(AwsomeError):
     pass
 
 def get_secret(key):
+    print(f'trying to get secret: {key}')
     sm = boto3.client('secretsmanager')
-    return sm.get_secret_value(SecretId = key)
+    print(f'accessed secrets manager')
+
+    secret = sm.get_secret_value(SecretId = key)
+    # print('secret: ', secret['SecretString'])
+
+    return secret['SecretString']
 
 def get_db_password():
-    return get_secret('TOTESYS_PASSWORD')['SecretString']
+    return get_secret('TOTESYS_PASSWORD')
 
 def get_db_name():
-    return get_secret('TOTESYS_DATABASE_NAME')['SecretString']
+    return get_secret('TOTESYS_DATABASE_NAME')
 
 def get_username():
-    return get_secret('TOTESYS_USERNAME')['SecretString']
+    return get_secret('TOTESYS_USERNAME')
 
 def get_host():
-    return get_secret('TOTESYS_HOST')['SecretString']
+    return get_secret('TOTESYS_HOST')
 
 def get_port():
-    return get_secret('TOTESYS_PORT')['SecretString']
+    return get_secret('TOTESYS_PORT')
 
 def get_region():
-    return get_secret('TOTESYS_REGION')['SecretString']
+    return get_secret('TOTESYS_REGION')
 
 def connect_to_database():
     '''Establishes and returns a native pg8000 connection to database_name'''
     try: 
         _user=get_username()
-        print(censor_secret(_user))
+        # print(censor_secret(_user))
     except: 
         raise DatabaseConnectionError('Unable to get_username()')
     
