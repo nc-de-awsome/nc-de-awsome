@@ -9,19 +9,19 @@ print('imported modules')
 import pg8000.native
 def ingest(event, context):
     print('ingest() invoked')
-    try:
-        print('ingest try block entered')
-        conn = connect_to_database()
-        print('connection to database eastablished: ', conn)
-        table_names = get_all_table_names(conn)
-        for table in table_names:
-            rows = create_list_of_dictionaries(conn, table)
-            print(f'the first tow of {table}: {rows[0]}')
-            json = list_of_dictionaries_to_json(rows)
-            write_json_to_bucket(json, 'nc-de-awsome-ingestion-zone', f'totesys/{table}.json' )
-        conn.close()
-    except Exception as e:
-        raise IngestionError(f'{e}')
+    # try:
+    print('ingest try block entered')
+    conn = connect_to_database()
+    print('connection to database eastablished: ', conn)
+    table_names = get_all_table_names(conn)
+    for table in table_names:
+        rows = create_list_of_dictionaries(conn, table)
+        print(f'the first tow of {table}: {rows[0]}')
+        json = list_of_dictionaries_to_json(rows)
+        write_json_to_bucket(json, 'nc-de-awsome-ingestion-zone', f'totesys/{table}.json' )
+    conn.close()
+    # except Exception as e:
+    #     raise IngestionError(f'{e}')
 
 class AwsomeError(Exception):
     pass
