@@ -1,0 +1,5 @@
+[console_scripts]
+safety = safety.cli:cli
+
+[python_requires]
+> = 3.6
