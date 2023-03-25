@@ -19,7 +19,7 @@ totesys_region = os.environ['TOTESYS_REGION']
 
 create_secret('TOTESYS_PASSWORD', totesys_password)
 create_secret('TOTESYS_USERNAME', totesys_username)
-create_secret('TOTESYS_DATABASE_NAME', totesys_username)
-create_secret('TOTESYS_HOST', totesys_username)
-create_secret('TOTESYS_PORT', totesys_username)
-create_secret('TOTESYS_REGION', totesys_username)
+create_secret('TOTESYS_DATABASE_NAME', totesys_database_name)
+create_secret('TOTESYS_HOST', totesys_host)
+create_secret('TOTESYS_PORT', totesys_port)
+create_secret('TOTESYS_REGION', totesys_region)
