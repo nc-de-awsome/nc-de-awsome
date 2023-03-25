@@ -1,20 +1,18 @@
 # from deploy_ingestion_lambda.src.conn import connect_to_database
 # from deploy_ingestion_lambda.src.queries import *
 # from deploy_ingestion_lambda.src.errors import IngestionError
-print('are we here?')
 import platform
-print('version: ',platform.python_version())
 import json
-print('how about here?')
-
 import boto3
-print('and now?')
+print('imported modules')
+
 import pg8000.native
 def ingest(event, context):
+    print('ingest() invoked')
     try:
-        print('ingest invoked')
+        print('ingest try block entered')
         conn = connect_to_database()
-        print('connection to database: ', conn)
+        print('connection to database eastablished: ', conn)
         table_names = get_all_table_names(conn)
         for table in table_names:
             rows = create_list_of_dictionaries(conn, table)
@@ -64,21 +62,36 @@ def get_region():
 
 def connect_to_database():
     '''Establishes and returns a native pg8000 connection to database_name'''
-    try: _user=get_username()
-    except: raise DatabaseConnectionError('Unable to get_username()')
+    try: 
+        _user=get_username()
+        print(censor_secret(_user))
+    except: 
+        raise DatabaseConnectionError('Unable to get_username()')
     
-    try: _host=get_host()
+    try: 
+        _host=get_host()
+        print(censor_secret(_host))
     except: raise DatabaseConnectionError('Unable to get_host()')
     
-    try : _database=get_db_name()
-    except: raise DatabaseConnectionError('Unable to get_db_name()')
+    try :
+        _database=get_db_name()
+        print(censor_secret(_database))
+    except:
+        raise DatabaseConnectionError('Unable to get_db_name()')
 
-    try : _port=get_port()
-    except: raise DatabaseConnectionError('Unable to get_port()')
+    try : 
+        _port=get_port()
+        print(censor_secret(_port))
+    except:
+        raise DatabaseConnectionError('Unable to get_port()')
 
-    try : _password=get_db_password()
-    except: raise DatabaseConnectionError('Unable to get_password()')
-    print(_password, 'password_here')
+    try : 
+        _password=get_db_password()
+        print(censor_secret(_password))
+
+    except:
+        raise DatabaseConnectionError('Unable to get_password()')
+    
     try:
         return  pg8000.native.Connection(
             user=_user,
@@ -95,6 +108,10 @@ def connect_to_database():
     except:
         raise DatabaseConnectionError('Unable to connect to Totesys database')
 
+def censor_secret(secret):
+    length = len(secret)-3
+    return f'{secret[:2]}{length*"*"}{secret[-1]}'
+
 def get_all_table_names(conn):
     '''Returns a list of table_name strings of each table in Totesys database
     
@@ -104,9 +121,12 @@ def get_all_table_names(conn):
         returns:
             list of strings 
     '''
+    print('get_all_table_names() invoked')
     try:
+        print('get_all_table_names try block entered')
         tables = conn.run("SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema='public';")
         table_names = [table[0] for table in tables]
+        print('table_names from SQL query: ', table_names)
         return table_names
     except:
         raise SelectQueryError('Unable to select table_names from totesys')
