@@ -49,6 +49,7 @@ do
         return
     fi
 done
+echo $GIT_BRANCH
 
 git add . && git commit -m "$msg" && git push origin $GIT_BRANCH
 
