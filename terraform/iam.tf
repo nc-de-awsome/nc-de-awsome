@@ -37,7 +37,7 @@ resource "aws_iam_role" "lambda_ingest_role" {
     "Statement": [
         {
             "Effect": "Allow",
-            "Resource" = "*",
+            "Resource" : "*",
             "Action": [
                 "sts:AssumeRole",
                 "secretsmanager:GetSecretValue"
