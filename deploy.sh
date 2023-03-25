@@ -1,5 +1,4 @@
 #!/bin/bash
-
 while loop==true
 echo "Ready to deploy? [y/n]"
 read input
@@ -37,11 +36,14 @@ rm dist/$LAMBDA_FILE
 
 GIT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
-echo "Enter commit message or [x] to abort:"
+echo "Enter commit message in or [x] to abort:"
 read msg2;
 
 if [ $msg2 != 'x' ]; then
     git add . && git commit -m "$msg2" && git push origin $GIT_BRANCH
+    git checkout main
+    git merge $GIT_BRANCH
+    git checkout $GIT_BRANCH
 else
     echo "Aborted"
 fi
