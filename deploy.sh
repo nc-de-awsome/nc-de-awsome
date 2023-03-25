@@ -1,12 +1,20 @@
 #!/bin/bash
 
+loop=true
+while loop==true
 echo "Ready to deploy? [y/n]"
 read input
+do
+    if [ $input == 'n' ] || [ $input == 'y' ]; then
+        loop=false
+        break
+    fi
+    echo "Invalid input"
+done
 
-if [ $input!='y' ]; then
-    echo "Aborting"
-    return
-fi
+if [ $input == 'n' ]; then
+    echo "Aborted"
+else
 
 LAMBDA_FILE="lambda_handler.py"
 LAMBDA_HANDLER_PATH="./deploy_ingestion_lambda/$LAMBDA_FILE"
@@ -36,7 +44,7 @@ while [ -n $msg ]
 do
     echo "Enter commit message or [x] to abort:"
     read msg
-    if [ $msg =='x' ]; then
+    if [ $msg == 'x' ]; then
         echo "Aborting"
         return
     fi
