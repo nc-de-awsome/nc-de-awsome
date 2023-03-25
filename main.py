@@ -21,7 +21,7 @@ def transform(event, context):
     update_forex_rates()
 
     # transform data into fact and dim tables
-    dim_staff = generate_dim_staff_table(staff_df, department_df)
+    dim_staff = generate_dim_staff(staff_df, department_df)
     dim_design = generate_dim_design(design_df)
     dim_location = generate_dim_location(address_df)
     dim_counterparty = generate_dim_counterparty(counterparty_df, address_df)
@@ -40,7 +40,7 @@ def transform(event, context):
     write_data_frame_to_parquet(dim_payment, 'dim_payment')
     write_data_frame_to_parquet(dim_transaction, 'dim_transaction')
 
-def generate_dim_staff_table(staff_df, department_df):
+def generate_dim_staff(staff_df, department_df):
     return staff_df.join(
         department_df.set_index('department_id'),
         on = 'department_id',
@@ -121,7 +121,11 @@ def generate_dim_date(sales_order_df):
     ]
 
     def create_datetime(timestamp):
-        return pd.to_datetime(pd.Timestamp(timestamp).to_pydatetime().replace(microsecond=0))
+        return pd.to_datetime(
+            pd.Timestamp(timestamp).
+            to_pydatetime().
+            replace(microsecond=0)
+        )
 
     dicts = []
     datetimes = [create_datetime(s[0]) for s in sales_timestamps.to_numpy()]
@@ -174,14 +178,20 @@ def generate_dim_payment_type(payment_df, transaction_df):
     )
 
 def generate_dim_transaction(transaction_df):
-    return transaction_df.where(pd.notnull(transaction_df), None)[
+    
+    return transaction_df.fillna(0)[
         [
             'transaction_id',
             'transaction_type',
             'sales_order_id',
             'purchase_order_id'
         ]
-    ]
+    ][
+        [
+            'sales_order_id',
+            'purchase_order_id'
+        ]
+    ].astype(int)
 
 def update_forex_rates():
     '''Gets forex rates data, writes to file, and updates at approx 8am each day'''
@@ -248,3 +258,4 @@ def write_data_frame_to_local_txt(data_frame, file_name):
     with open(f'./transformation_parquet/{file_name}.txt', 'w') as f:
         f.write(data_frame.to_string())
 
+transform(None, None)
