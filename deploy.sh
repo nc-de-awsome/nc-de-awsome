@@ -43,7 +43,7 @@ read msg
 while [ -n $msg ]
 do
     echo "Enter commit message or [x] to abort:"
-    read msg
+    read msg;
     if [ $msg == 'x' ]; then
         echo "Aborting"
         return
