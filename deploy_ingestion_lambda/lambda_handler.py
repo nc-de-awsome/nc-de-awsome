@@ -78,7 +78,7 @@ def connect_to_database():
 
     try : _password=get_db_password()
     except: raise DatabaseConnectionError('Unable to get_password()')
-   
+    print(_password, 'password_here')
     try:
         return  pg8000.native.Connection(
             user=_user,
