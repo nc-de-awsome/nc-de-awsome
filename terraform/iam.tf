@@ -48,15 +48,11 @@ resource "aws_iam_role" "lambda_ingest_role" {
         },
         {
             "Action" : [
-            "secretsmanager:GetSecretValue",
+            "secretsmanager:GetSecretValue"
             ],
             "Effect"   : "Allow"
             "Resource" = "*",
-            "Principal": {
-                "Service": [
-                    "lambda.amazonaws.com"
-                ]
-            }
+            
         }
     ]  
 }
