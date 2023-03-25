@@ -45,22 +45,22 @@ def get_secret(key):
     return sm.get_secret_value(SecretId = key)
 
 def get_db_password():
-    return get_secret('TOTESYS_PASSWORD')
+    return get_secret('TOTESYS_PASSWORD')['SecretString']
 
 def get_db_name():
-    return get_secret('TOTESYS_DATABASE_NAME')
+    return get_secret('TOTESYS_DATABASE_NAME')['SecretString']
 
 def get_username():
-    return get_secret('TOTESYS_USERNAME')
+    return get_secret('TOTESYS_USERNAME')['SecretString']
 
 def get_host():
-    return get_secret('TOTESYS_HOST')
+    return get_secret('TOTESYS_HOST')['SecretString']
 
 def get_port():
-    return get_secret('TOTESYS_PORT')
+    return get_secret('TOTESYS_PORT')['SecretString']
 
 def get_region():
-    return get_secret('TOTESYS_REGION')
+    return get_secret('TOTESYS_REGION')['SecretString']
 
 def connect_to_database():
     '''Establishes and returns a native pg8000 connection to database_name'''
