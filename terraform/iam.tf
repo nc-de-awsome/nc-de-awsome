@@ -29,7 +29,7 @@ resource "aws_iam_policy" "cw_policy" {
     policy = data.aws_iam_policy_document.cw_document.json
 }
 
-resource "aws_iam_role" "lambda_ingest_role" {
+resource "aws_iam_role" "lambda_ingest_role_2" {
     name_prefix = "role-${var.ingestion_lambda_name}"
     assume_role_policy = <<EOF
     {
@@ -54,12 +54,12 @@ EOF
 }
 
 resource "aws_iam_role_policy_attachment" "s3_ingest_policy_attachment" {
-    role = aws_iam_role.lambda_ingest_role.name
+    role = aws_iam_role.lambda_ingest_role_2.name
     policy_arn = aws_iam_policy.s3_policy_ingest.arn
 }
 
 resource "aws_iam_role_policy_attachment" "cw_ingest_policy_attachment" {
-    role = aws_iam_role.lambda_ingest_role.name
+    role = aws_iam_role.lambda_ingest_role_2.name
     policy_arn = aws_iam_policy.cw_policy.arn
 }
 
