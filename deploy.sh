@@ -36,22 +36,15 @@ zip dist/$ZIP_FILE dist/$LAMBDA_FILE
 rm -r $INGEST_PACKAGE
 rm dist/$LAMBDA_FILE
 
-GIT_BRANCH="git rev-parse --abbrev-ref HEAD)"
+GIT_BRANCH="git rev-parse --abbrev-ref HEAD"
 
-echo "Enter commit message:"
-read msg;
-loop2=true
-while loop2;
-do
-    read msg2;
-    if [ $msg2 == 'x' ]; then
-        echo "Aborting"
-        return
-    fi
-    echo "Enter commit message or [x] to abort:"
-done
-echo ${GIT_BRANCH}
+echo "Enter commit message or [x] to abort:"
+read msg2;
 
-git add . && git commit -m "$msg" && git push origin $GIT_BRANCH
-
+if [ $msg2 != 'x' ]; then
+    $GIT_BRANCH
+    git add . && git commit -m "$msg2" && git push origin $GIT_BRANCH
+else
+    echo "Aborting"
+fi
 fi
