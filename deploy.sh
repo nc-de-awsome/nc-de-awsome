@@ -39,15 +39,16 @@ rm dist/$LAMBDA_FILE
 GIT_BRANCH="git rev-parse --abbrev-ref HEAD)"
 
 echo "Enter commit message:"
-read msg
-while [ -n $msg ]
+read msg;
+loop2=true
+while loop2;
 do
-    echo "Enter commit message or [x] to abort:"
-    read msg;
-    if [ $msg == 'x' ]; then
+    read msg2;
+    if [ $msg2 == 'x' ]; then
         echo "Aborting"
         return
     fi
+    echo "Enter commit message or [x] to abort:"
 done
 echo ${GIT_BRANCH}
 
