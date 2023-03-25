@@ -36,7 +36,7 @@ zip dist/$ZIP_FILE dist/$LAMBDA_FILE
 rm -r $INGEST_PACKAGE
 rm dist/$LAMBDA_FILE
 
-GIT_BRANCH="git rev-parse --abbrev-ref HEAD"
+GIT_BRANCH="git rev-parse --abbrev-ref HEAD)"
 
 echo "Enter commit message:"
 read msg
@@ -49,7 +49,7 @@ do
         return
     fi
 done
-echo $GIT_BRANCH
+echo ${GIT_BRANCH}
 
 git add . && git commit -m "$msg" && git push origin $GIT_BRANCH
 
