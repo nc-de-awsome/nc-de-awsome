@@ -20,7 +20,7 @@ def ingest(event, context):
             rows = create_list_of_dictionaries(conn, table)
             print(f'the first tow of {table}: {rows[0]}')
             json = list_of_dictionaries_to_json(rows)
-            # write_json_to_bucket(json, 'nc-de-awsome-ingestion-zone', f'totesys/{table}.json' )
+            write_json_to_bucket(json, 'nc-de-awsome-ingestion-zone', f'totesys/{table}.json' )
         conn.close()
     except Exception as e:
         raise IngestionError(f'{e}')
