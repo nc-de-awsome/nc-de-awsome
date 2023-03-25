@@ -16,3 +16,4 @@ serverless-output.yaml
 venv/
 .terraform*
 .env
+playground.py
