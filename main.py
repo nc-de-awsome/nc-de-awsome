@@ -4,7 +4,6 @@ import json
 import os
 from datetime import datetime
 
-
 def transform(event, context):
     # load all data from transformation bucket
     staff_df = load_data_frame_from_json('staff')
