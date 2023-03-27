@@ -213,9 +213,18 @@ def write_json_to_bucket(json, bucket_name, key):
     try:
         s3 = boto3.client('s3')
         print('attempting to put json in s3 bucket')
-        response = s3.put_object(Body=json, Bucket=bucket_name, Key=key)
-        print('response completed')
-        print(response)
+        s3.put_object(Body=json, Bucket=bucket_name, Key=key)
+        print('json write to bucket complete')
     except:
         raise WriteError('Unable to write JSON to S3 bucket')
     return response
+    # response = None
+    # try:
+    #     s3 = boto3.client('s3')
+    #     print('attempting to put json in s3 bucket')
+    #     response = s3.put_object(Body=json, Bucket=bucket_name, Key=key)
+    #     print('response completed')
+    #     print(response)
+    # except:
+    #     raise WriteError('Unable to write JSON to S3 bucket')
+    # return response
