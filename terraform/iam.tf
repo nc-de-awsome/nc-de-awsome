@@ -1,14 +1,15 @@
 data "aws_iam_policy_document" "s3_document_ingest" {
   statement {
-    actions = ["s3:PutObject"]
-    resources = [
-      "*"
-    ]
-  }
-  statement {
     actions = ["secretsmanager:GetSecretValue"]
     resources = [
       "*" # replace with ARN of the AWS secrets location
+    ]
+  }
+  
+  statement {
+    actions = ["s3:PutObject"]
+    resources = [
+      "*"
     ]
   }
 }
