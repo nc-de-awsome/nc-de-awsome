@@ -5,6 +5,13 @@ data "aws_iam_policy_document" "s3_document_ingest" {
         "${aws_s3_bucket.ingestion_zone.arn}/*"
       ]
   }
+
+  statement {
+      actions = ["s3:PutObject"]
+      resources = [
+        "*"
+      ]
+  }
   
   statement {
     actions = ["secretsmanager:GetSecretValue"]
