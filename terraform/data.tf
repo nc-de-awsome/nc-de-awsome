@@ -2,21 +2,21 @@ data "aws_caller_identity" "current_account" {}
 
 data "aws_region" "current_region" {}
 
-data "archive_file" "ingestion-lambda" {
-    type = "zip"
-    output_path = "${path.module}/../deploy_ingestion_lambda.zip"
-    source_dir = "${path.module}/../deploy_ingestion_lambda"
+# data "archive_file" "ingestion-lambda" {
+#     type = "zip"
+#     # output_path = "${path.module}/../deploy_ingestion_lambda.zip"
+#     source_dir = "${path.module}/../dist/deploy_ingestion_lambda"
 
-    excludes    = [
-    "__pycache__",
-    "src/__pycache__",
-    "tests/__pycache__",
-    "tests",
-    "src"
-  ]
+#   #   excludes    = [
+#   #   "__pycache__",
+#   #   "src/__pycache__",
+#   #   "tests/__pycache__",
+#   #   "tests",
+#   #   "src"
+#   # ]
 
-    # depends_on = [null_resource.install_dependencies]
-}
+# #     # depends_on = [null_resource.install_dependencies]
+#  }
 
 # resource "null_resource" "install_dependencies" {
 #   provisioner "local-exec" {

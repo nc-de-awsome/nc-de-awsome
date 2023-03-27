@@ -13,5 +13,5 @@ resource "aws_s3_bucket" "lambda_bucket" {
 resource "aws_s3_object" "lambda_code_deployment" {
   bucket = aws_s3_bucket.lambda_bucket.bucket
   key    = "deploy_ingestion_lambda.zip"
-  source = "${path.module}/../dist/deploy_ingestion_lambda.zip"
+  source = "${path.module}/../deployment_zips/deploy_ingestion_lambda.zip"
 }
