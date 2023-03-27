@@ -1,19 +1,27 @@
-### Hi there 👋
+# AWSome group project
 
-<!--
-**nc-de-awsome/nc-de-awsome** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
+## Introduction
+This project creates a data platform in AWS (using S3, Lambda, EventBridge and CloudWatch) that extracts data from an operational database (named totesys), archives it in a data lake, and makes it available in a remodelled OLAP data warehouse.
 
-Here are some ideas to get you started:
+A Python application deployed in AWS Lambda (hereafter named ingestion lambda) ingests all tables from the totesys database and saves them in an S3 bucket (ingestion zone bucket). It runs automatically every 10 minutes according to an Eventbridge rule and logs progress to CloudWatch. Email alerts are triggered in the event of errors.
 
-- 🔭 I’m currently working on ...
-- 🌱 I’m currently learning ...
-- 👯 I’m looking to collaborate on ...
-- 🤔 I’m looking for help with ...
-- 💬 Ask me about ...
-- 📫 How to reach me: ...
-- 😄 Pronouns: ...
-- ⚡ Fun fact: ...
--->
+## Platform Infrastructure
+The data platform has two s3 buckets: an ingestion zone bucket; and a processed zone bucket.
+
+The following AWS sources have permission to access each Lambda function as follows:
+    - EventBridge rule to invoke ingestion lambda every 10 minutes
+    - [S3 ingestion-zone bucket/EventBridge rule] to invoke transformation lambda
+
+The ingestion lambda has permission to:
+    - create S3 objects in the ingestion zone bucket
+    - create CloudWatch logs
+
+The transformation lambda has permission to:
+    - read S3 objects in the ingestion zone bucket
+    - create S3 objects in the processed zone bucket
+    - create CloudWatch logs
+
+## Instructions for setup
 
 1. Fork and clone this project.
 2. In the terminal, navigate to the root directory of the project, and run:
@@ -30,6 +38,7 @@ Here are some ideas to get you started:
    sh state.sh
    ```
 
-   THis creates an s3 bucket that will store the terraform state file remotely.
+   This creates an s3 bucket that will store the terraform state file remotely.
 
 4. Deployment of AWS resources are automated using GitHub Actions.
+
