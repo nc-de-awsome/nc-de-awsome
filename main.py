@@ -30,6 +30,7 @@ def transform(event, context):
     dim_currency = generate_dim_currency(currency_df, currency_name_df)
     dim_payment = generate_dim_payment_type(payment_df, transaction_df)
     dim_transaction = generate_dim_transaction(transaction_df)
+    fact_sales_order_df = generate_fact_sales_order()
 
     # writeout fact/dim tables to parquet to load bucket
     write_data_frame_to_parquet(dim_staff, 'dim_staff')
@@ -40,6 +41,37 @@ def transform(event, context):
     write_data_frame_to_parquet(dim_currency, 'dim_currency')
     write_data_frame_to_parquet(dim_payment, 'dim_payment')
     write_data_frame_to_parquet(dim_transaction, 'dim_transaction')
+    write_data_frame_to_parquet(fact_sales_order_df, 'fact_sales_order')
+
+def generate_fact_sales_order():
+    fact_sales_order_df = load_data_frame_from_json('sales_order').rename(columns={'staff_id' : 'sales_staff_id'})
+    
+    fact_sales_order_df['sales_record_id'] = fact_sales_order_df.index + 1
+    fact_sales_order_df['created_date'] = fact_sales_order_df['created_at'].dt.date
+    fact_sales_order_df['created_time'] = fact_sales_order_df['created_at'].dt.time
+    fact_sales_order_df['last_updated'] = pd.to_datetime(fact_sales_order_df['last_updated'])
+    fact_sales_order_df['last_updated_date'] = fact_sales_order_df['last_updated'].dt.date
+    fact_sales_order_df['last_updated_time'] = fact_sales_order_df['last_updated'].dt.time
+    fact_sales_order_df.drop('created_at', axis=1, inplace=True)
+    fact_sales_order_df.drop('last_updated', axis=1, inplace=True)
+
+    return fact_sales_order_df.reindex(columns=[
+        'sales_record_id',
+        'sales_order_id',
+        'created_date',
+        'created_time',
+        'last_updated_date',
+        'last_updated_time',
+        'sales_staff_id',
+        'counterparty_id',
+        'units_sold',
+        'unit_price',
+        'currency_id',
+        'design_id',
+        'agreed_payment_date',
+        'agreed_delivery_date',
+        'agreed_delivery_location_id'
+    ])
 
 def generate_dim_staff(staff_df, department_df):
     return staff_df.join(
