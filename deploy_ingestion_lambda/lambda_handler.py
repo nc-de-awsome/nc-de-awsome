@@ -2,12 +2,13 @@ import json
 import boto3
 from datetime import datetime
 import pg8000.native
+import pytz
 
 def ingest(event, context):
     try:
         conn = connect_to_database()
         table_names = get_all_table_names(conn)
-        time_of_query = datetime.now().strftime('%y-%m-%d %H:%M:%S')
+        time_of_query = get_time_of_query()
         for table in table_names:
             rows = create_list_of_dictionaries(conn, table)
             json_data = list_of_dictionaries_to_json(rows)
@@ -186,6 +187,11 @@ def write_json_to_bucket(json, bucket_name, key):
     except:
         raise WriteError('Unable to write JSON to S3 bucket')
 
+def get_time_of_query():
+    tz = pytz.timezone('Europe/London')
+    now = datetime.now(tz).strftime('%y-%m-%d %H:%M:%S')
+    return now
+
 def create_log_timestamp(time_of_query):
     obj = {
         "Last successful query" : time_of_query
@@ -208,3 +214,5 @@ class WriteError(AwsomeError):
 
 class SelectQueryError(AwsomeError):
     pass
+
+datetime.utcnow().strftime('%y-%m-%d %H:%M:%S')
