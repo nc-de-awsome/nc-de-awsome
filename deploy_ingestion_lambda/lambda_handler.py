@@ -25,7 +25,7 @@ def ingest(event, context):
                 f'query_log.json' 
             )
         conn.close()
-        print(f'Ingestion @{time_of_query} complete.')
+        print(f'Ingestion complete: {time_of_query}.')
     except Exception as e:
         raise IngestionError(f'{e}')
 
@@ -193,7 +193,7 @@ def get_time_of_query():
     return now
 
 def create_log_timestamp(time_of_query):
-    obj = {
+    return {
         "Last successful query" : time_of_query
         # "Last query" : time_of_query,
     }
