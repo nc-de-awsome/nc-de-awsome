@@ -1,9 +1,10 @@
-# import pandas as pd
+import pandas as pd
 import requests
 import json
 import os
 from datetime import datetime
 import boto3
+import io
 
 
 def transform(event, context):
@@ -219,12 +220,17 @@ def load_data_frame_from_csv(filepath):
     return pd.read_csv(f'{filepath}')
 
 def write_data_frame_to_parquet(data_frame, file_name):
-    data_frame.to_parquet(
-        f's3://nc-de-awsome-processed-zone/transformation_parquet/{file_name}.parquet', 
-        engine='auto', 
-        compression=None, 
-        index=False
-    )
+    # data_frame.to_parquet(
+    #     f's3://nc-de-awsome-processed-zone/transformation_parquet/{file_name}.parquet', 
+    #     engine='auto', 
+    #     compression=None, 
+    #     index=False
+    # )
+    parquet_buffer = io.BytesIO()
+    data_frame.to_parquet(parquet_buffer, index=False)
+    parquet_buffer.seek(0)
+    s3 = boto3.client('s3')
+    s3.upload_fileobj(parquet_buffer, 'nc-de-awsome-processed-zone', f'transformation_parquet/{file_name}.parquet')
 
 ##################### temp code #####################
     # write_data_frame_to_local_txt(data_frame, file_name)
@@ -285,7 +291,7 @@ def fetch_log_timestamp():
     time_query = client.get_object(Bucket= 'nc-de-awsome-ingestion-zone', Key='query_log.json')
     return time_query
 
-print(fetch_log_timestamp()['Body'].read().decode())
+# print(fetch_log_timestamp()['Body'].read().decode())
 
 def s3_file_reader(table_name):
     response = None
@@ -293,11 +299,14 @@ def s3_file_reader(table_name):
         client = boto3.client('s3')
         response = client.get_object(
             Bucket= 'nc-de-awsome-ingestion-zone',
-            Key= f'totesys/{fetch_log_timestamp()}/{table_name}.json'
+            Key= f'totesys/23-03-28 06:07:23/{table_name}.json'
         )
     except Exception:
         raise ReadError('Unable to read JSON from s3 bucket')
     return response['Body'].read().decode()
+
+currency_df = load_data_frame_from_json('staff')
+write_data_frame_to_parquet(currency_df, 'staff')
 
 # Errors - CHANGE
 # failure to read/access 
