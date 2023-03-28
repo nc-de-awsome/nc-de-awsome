@@ -1,53 +1,70 @@
-# from deploy_ingestion_lambda.src.conn import connect_to_database
-# from deploy_ingestion_lambda.src.queries import *
-# from deploy_ingestion_lambda.src.errors import IngestionError
-import platform
 import json
 import boto3
-print('imported modules')
-
+from datetime import datetime
 import pg8000.native
+
 def ingest(event, context):
-    print('ingest() invoked')
     try:
-        print('ingest try block entered')
         conn = connect_to_database()
-        print('connection to database eastablished: ', conn)
         table_names = get_all_table_names(conn)
+        time_of_query = datetime.now().strftime('%y-%m-%d %H:%M:%S')
         for table in table_names:
             rows = create_list_of_dictionaries(conn, table)
-            print(f'the first tow of {table}: {rows[0]}')
             json_data = list_of_dictionaries_to_json(rows)
-            print('json data read correctly')
-            write_json_to_bucket(json_data, 'nc-de-awsome-ingestion-zone', f'totesys/{table}.json' )
-            print(f'{table}')
+            write_json_to_bucket(
+                json_data,
+                'nc-de-awsome-ingestion-zone',
+                f'totesys/{time_of_query}/{table}.json' 
+            )
+            log_timestamp = create_log_timestamp(time_of_query)
+            json_time = json.dumps(log_timestamp, indent=4, default=str)
+            write_json_to_bucket(
+                json_time,
+                'nc-de-awsome-ingestion-zone',
+                f'query_log.json' 
+            )
         conn.close()
+        print(f'Ingestion @{time_of_query} complete.')
     except Exception as e:
         raise IngestionError(f'{e}')
 
-class AwsomeError(Exception):
-    pass
+def connect_to_database():
+    '''Establishes and returns a native pg8000 connection to database_name'''
+    try: 
+        _user=get_username()
+    except: raise DatabaseConnectionError('Unable to get_username()')
+    
+    try: 
+        _host=get_host()
+    except: raise DatabaseConnectionError('Unable to get_host()')
+    
+    try :
+        _database=get_db_name()
+    except: raise DatabaseConnectionError('Unable to get_db_name()')
 
-class DatabaseConnectionError(AwsomeError):
-    pass
+    try : 
+        _port=get_port()
+    except: raise DatabaseConnectionError('Unable to get_port()')
 
-class IngestionError(AwsomeError):
-    pass
-
-class WriteError(AwsomeError):
-    pass
-
-class SelectQueryError(AwsomeError):
-    pass
+    try : 
+        _password=get_db_password()
+    except:
+        raise DatabaseConnectionError('Unable to get_password()')
+    
+    try:
+        return  pg8000.native.Connection(
+            user=_user,
+            host =_host,
+            database = _database,
+            port = _port,
+            password=_password
+        )
+    except:
+        raise DatabaseConnectionError('Unable to connect to Totesys database')
 
 def get_secret(key):
-    print(f'trying to get secret: {key}')
     sm = boto3.client('secretsmanager')
-    print(f'accessed secrets manager')
-
     secret = sm.get_secret_value(SecretId = key)
-    # print('secret: ', secret['SecretString'])
-
     return secret['SecretString']
 
 def get_db_password():
@@ -68,58 +85,6 @@ def get_port():
 def get_region():
     return get_secret('TOTESYS_REGION')
 
-def connect_to_database():
-    '''Establishes and returns a native pg8000 connection to database_name'''
-    try: 
-        _user=get_username()
-        # print(censor_secret(_user))
-    except: 
-        raise DatabaseConnectionError('Unable to get_username()')
-    
-    try: 
-        _host=get_host()
-        print(censor_secret(_host))
-    except: raise DatabaseConnectionError('Unable to get_host()')
-    
-    try :
-        _database=get_db_name()
-        print(censor_secret(_database))
-    except:
-        raise DatabaseConnectionError('Unable to get_db_name()')
-
-    try : 
-        _port=get_port()
-        print(censor_secret(_port))
-    except:
-        raise DatabaseConnectionError('Unable to get_port()')
-
-    try : 
-        _password=get_db_password()
-        print(censor_secret(_password))
-
-    except:
-        raise DatabaseConnectionError('Unable to get_password()')
-    
-    try:
-        return  pg8000.native.Connection(
-            user=_user,
-            host =_host,
-            database = _database,
-            port = _port,
-            password=_password
-    #       user=get_username(), 
-    #       host=get_host(), 
-    #       database=get_db_name(), 
-    #       port=get_port(), 
-    #       password=get_db_password()
-        )
-    except:
-        raise DatabaseConnectionError('Unable to connect to Totesys database')
-
-def censor_secret(secret):
-    length = len(secret)-3
-    return f'{secret[:2]}{length*"*"}{secret[-1]}'
-
 def get_all_table_names(conn):
     '''Returns a list of table_name strings of each table in Totesys database
     
@@ -129,12 +94,13 @@ def get_all_table_names(conn):
         returns:
             list of strings 
     '''
-    print('get_all_table_names() invoked')
     try:
-        print('get_all_table_names try block entered')
-        tables = conn.run("SELECT table_name FROM information_schema.tables WHERE table_type='BASE TABLE' AND table_schema='public';")
+        tables = conn.run("""
+            SELECT table_name FROM information_schema.tables
+            WHERE table_type='BASE TABLE' AND table_schema='public';
+        """
+        )
         table_names = [table[0] for table in tables]
-        print('table_names from SQL query: ', table_names)
         return table_names
     except:
         raise SelectQueryError('Unable to select table_names from totesys')
@@ -150,7 +116,12 @@ def _get_table_column_names(conn, table_name):
             list of strings 
     '''
     try:
-        columns = conn.run(f"SELECT column_name FROM information_schema.columns WHERE table_name = '{table_name}' AND table_schema='public';")
+        columns = conn.run(f"""
+            SELECT column_name FROM information_schema.columns
+            WHERE table_name = '{table_name}'
+            AND table_schema='public';
+            """
+        )
         column_names = [column_name[0] for column_name in columns]
         return column_names
     except:
@@ -209,22 +180,31 @@ def list_of_dictionaries_to_json(list_of_dicts):
     return json.dumps(list_of_dicts, indent=4, default=str)
 
 def write_json_to_bucket(json, bucket_name, key):
-    response = None
     try:
         s3 = boto3.client('s3')
-        print('attempting to put json in s3 bucket')
-        s3.put_object(Body=json, Bucket=bucket_name, Key=key)
-        print('json write to bucket complete')
+        s3.put_object(Body=json.encode("utf-8"), Bucket=bucket_name, Key=key)
     except:
         raise WriteError('Unable to write JSON to S3 bucket')
-    return response
-    # response = None
-    # try:
-    #     s3 = boto3.client('s3')
-    #     print('attempting to put json in s3 bucket')
-    #     response = s3.put_object(Body=json, Bucket=bucket_name, Key=key)
-    #     print('response completed')
-    #     print(response)
-    # except:
-    #     raise WriteError('Unable to write JSON to S3 bucket')
-    # return response
+
+def create_log_timestamp(time_of_query):
+    obj = {
+        "Last successful query" : time_of_query
+        # "Last query" : time_of_query,
+    }
+
+# Errors
+
+class AwsomeError(Exception):
+    pass
+
+class DatabaseConnectionError(AwsomeError):
+    pass
+
+class IngestionError(AwsomeError):
+    pass
+
+class WriteError(AwsomeError):
+    pass
+
+class SelectQueryError(AwsomeError):
+    pass

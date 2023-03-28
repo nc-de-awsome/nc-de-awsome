@@ -2,7 +2,6 @@ data "aws_iam_policy_document" "s3_document_ingest" {
   statement {
       actions = ["s3:PutObject"]
       resources = [
-        "${aws_s3_bucket.ingestion_zone.arn}",
         "${aws_s3_bucket.ingestion_zone.arn}/*"
       ]
   }
@@ -140,7 +139,3 @@ resource "aws_iam_role_policy_attachment" "s3_process_policy_attachment" {
 #     role = aws_iam_role.lambda_process_role.name
 #     policy_arn = aws_iam_policy.cw_policy.arn
 # }
-
-
-
-
