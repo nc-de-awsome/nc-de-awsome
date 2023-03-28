@@ -1,4 +1,4 @@
-import pandas as pd
+# import pandas as pd
 import requests
 import json
 import os
@@ -27,7 +27,7 @@ def transform(event, context):
     dim_design = generate_dim_design(design_df)
     dim_location = generate_dim_location(address_df)
     dim_counterparty = generate_dim_counterparty(counterparty_df, address_df)
-    dim_date = generate_dim_date(sales_order_df)
+    dim_date = generate_dim_date()
     dim_currency = generate_dim_currency(currency_df, currency_name_df)
     dim_payment = generate_dim_payment_type(payment_df, transaction_df)
     dim_transaction = generate_dim_transaction(transaction_df)
@@ -119,38 +119,6 @@ def generate_dim_counterparty(counterparty_df, address_df):
             'phone' : 'counterparty_legal_phone_number'
         }
     )
-
-def generate_dim_date(sales_order_df):
-    sales_timestamps=sales_order_df[
-        [
-            'created_at'
-        ]
-    ]
-
-    def create_datetime(timestamp):
-        return pd.to_datetime(
-            pd.Timestamp(timestamp).
-            to_pydatetime().
-            replace(microsecond=0)
-        )
-
-    dicts = []
-    datetimes = [create_datetime(s[0]) for s in sales_timestamps.to_numpy()]
-    for date in datetimes:
-        dicts.append(
-                {
-                    'date_id' : date.strftime('%y-%m-%d %H:%M:%S'),
-                    'year' : date.year,
-                    'month' : date.month,
-                    'day' : date.day,
-                    'day_of_week' : date.day_of_week,
-                    'day_name' : date.day_name(),
-                    'month_name' : date.month_name(),
-                    'quarter' : date.quarter
-            }
-        )
-    
-    return pd.DataFrame.from_records(dicts)
 
 def generate_dim_currency(currency_df, currency_name_df):
     return currency_df.join(
@@ -266,8 +234,8 @@ def write_data_frame_to_local_txt(data_frame, file_name):
     with open(f'./transformation_parquet/{file_name}.txt', 'w') as f:
         f.write(data_frame.to_string())
 
-def dim_date_table():
-    df = pd.DataFrame(pd.date_range('1/1/2010','12/31/2023'), columns=['date'])
+def generate_dim_date():
+    df = pd.DataFrame(pd.date_range('1/1/1999','12/31/2023'), columns=['date'])
     df['date_id'] = df['date']
     df['year'] = df['date'].dt.year
     df['month'] = df['date'].dt.month
@@ -312,15 +280,37 @@ def generate_fact_payment():
 
     return fact_payment
 
+def fetch_log_timestamp():
+    client = boto3.client('s3')
+    time_query = client.get_object(Bucket= 'nc-de-awsome-ingestion-zone', Key='query_log.json')
+    return time_query
+
+print(fetch_log_timestamp()['Body'].read().decode())
+
 def s3_file_reader(table_name):
     response = None
     try:
-        print('path to the key here is hardcoded but needs discussion') 
         client = boto3.client('s3')
         response = client.get_object(
             Bucket= 'nc-de-awsome-ingestion-zone',
-            Key= f'totesys/23-03-28 06:07:23/{table_name}.json'
+            Key= f'totesys/{fetch_log_timestamp()}/{table_name}.json'
         )
-    except Exception as e:
-        raise e('Not able to read file')
+    except Exception:
+        raise ReadError('Unable to read JSON from s3 bucket')
     return response['Body'].read().decode()
+
+# Errors - CHANGE
+# failure to read/access 
+# write error
+
+class AwsomeError(Exception):
+    pass
+
+class TransformationError(AwsomeError):
+    pass
+
+class WriteError(AwsomeError):
+    pass
+
+class ReadError(AwsomeError):
+    pass
