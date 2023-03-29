@@ -1,12 +1,10 @@
 resource "aws_lambda_function" "ingest_lambda" {
-  # filename = "${path.module}/../deployment_requirements.zip"
   s3_bucket        = aws_s3_bucket.lambda_bucket.bucket
   s3_key           = aws_s3_object.lambda_code_deployment.key
   function_name    = var.ingestion_lambda_name
   role             = aws_iam_role.lambda_ingest_role.arn
   handler          = "lambda_handler.ingest"
   runtime          = "python3.9"
-  # source_code_hash = data.archive_file.ingestion-lambda.output_base64sha256
   source_code_hash = filebase64sha256("${path.module}/../deployment_zips/deploy_ingestion_lambda.zip")
   timeout          = 60
 }
