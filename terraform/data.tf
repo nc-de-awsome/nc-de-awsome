@@ -2,6 +2,31 @@ data "aws_caller_identity" "current_account" {}
 
 data "aws_region" "current_region" {}
 
+data "aws_secretsmanager_secret" "totesys_password" {
+  name = "TOTESYS_PASSWORD"
+}
+
+data "aws_secretsmanager_secret" "totesys_username" {
+  name = "TOTESYS_USERNAME"
+}
+
+data "aws_secretsmanager_secret" "totesys_database_name" {
+  name = "TOTESYS_DATABASE_NAME"
+}
+
+data "aws_secretsmanager_secret" "totesys_host" {
+  name = "TOTESYS_HOST"
+}
+
+data "aws_secretsmanager_secret" "totesys_port" {
+  name = "TOTESYS_PORT"
+}
+
+data "aws_secretsmanager_secret" "totesys_region" {
+  name = "TOTESYS_REGION"
+}
+
+
 # data "archive_file" "ingestion-lambda" {
 #     type = "zip"
 #     # output_path = "${path.module}/../deploy_ingestion_lambda.zip"
