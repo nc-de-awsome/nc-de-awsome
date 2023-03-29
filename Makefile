@@ -64,11 +64,11 @@ dev-setup: bandit safety flake coverage
 ## Run the security test (bandit + safety)
 security-test:
 	$(call execute_in_env, safety check -r ./requirements.txt)
-	$(call execute_in_env, bandit -lll */*.py *c/*/*.py)
+	$(call execute_in_env, bandit -lll ./deploy_ingestion_lambda/lambda_handler.py ./deploy_ingestion_lambda/tests/test_lambda_handler.py ./deploy_processed_lambda/main.py ./deploy_processed_lambda/tests/test_main.py)
 
 ## Run the flake8 code check
 run-flake:
-	$(call execute_in_env, flake8  ./src/*/*.py ./test/*/*.py)
+	$(call execute_in_env, flake8  ./deploy_ingestion_lambda/lambda_handler.py ./deploy_ingestion_lambda/tests/test_lambda_handler.py ./deploy_processed_lambda/main.py ./deploy_processed_lambda/tests/test_main.py)
 
 ## Run the unit tests
 unit-test:
@@ -79,7 +79,7 @@ check-coverage:
 	$(call execute_in_env, PYTHONPATH=${PYTHONPATH} coverage run --omit 'venv/*' -m pytest && coverage report -m)
 
 ## Run all checks
-run-checks: security-test run-flake unit-test check-coverage
+run-checks: security-test unit-test check-coverage run-flake
 
 # Create AWS secret manager
 aws_secrets:
