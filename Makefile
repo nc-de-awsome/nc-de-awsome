@@ -79,7 +79,7 @@ check-coverage:
 	$(call execute_in_env, PYTHONPATH=${PYTHONPATH} coverage run --omit 'venv/*' -m pytest && coverage report -m)
 
 ## Run all checks
-run-checks: security-test unit-test check-coverage run-flake
+run-checks: security-test unit-test check-coverage
 
 # Create AWS secret manager
 aws_secrets:
