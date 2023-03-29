@@ -194,9 +194,10 @@ def get_time_of_query():
 
 def create_log_timestamp(time_of_query):
     obj = {
-        "Last successful query" : time_of_query
+        "last_successful_query" : time_of_query
         # "Last query" : time_of_query,
     }
+    return obj
 
 # Errors
 
@@ -214,5 +215,3 @@ class WriteError(AwsomeError):
 
 class SelectQueryError(AwsomeError):
     pass
-
-datetime.utcnow().strftime('%y-%m-%d %H:%M:%S')

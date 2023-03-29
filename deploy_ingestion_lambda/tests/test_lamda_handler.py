@@ -1,17 +1,27 @@
-from deploy_ingestion_lambda.src.queries import *
-from deploy_ingestion_lambda.src.queries import _get_table_column_names, _get_table_values
-from deploy_ingestion_lambda.src.conn import connect_to_database
+from deploy_ingestion_lambda.lambda_handler import *
+from deploy_ingestion_lambda.lambda_handler import _get_table_column_names, _get_table_values
 import datetime
 import pytest
-import moto
 from moto.core import patch_client
 from moto import mock_s3
 import os
-from deploy_ingestion_lambda.src.queries import write_json_to_bucket
 import json
-from deploy_ingestion_lambda.src.errors import WriteError, IngestionError
-from deploy_ingestion_lambda.src.main import ingest
 from unittest.mock import patch
+
+totesys_password = os.environ['TOTESYS_PASSWORD']
+totesys_username = os.environ['TOTESYS_USERNAME']
+totesys_database_name = os.environ['TOTESYS_DATABASE_NAME'] 
+totesys_host = os.environ['TOTESYS_HOST']
+totesys_port = os.environ['TOTESYS_PORT']
+totesys_region = os.environ['TOTESYS_REGION']
+
+conn = pg8000.native.Connection(
+            user=totesys_username,
+            host =totesys_host,
+            database = totesys_database_name,
+            port = totesys_port,
+            password=totesys_password
+        )
 
 @pytest.fixture(scope='function')
 def aws_credentials():
@@ -23,7 +33,6 @@ def aws_credentials():
     os.environ['AWS_DEFAULT_REGION'] = 'eu-west-2'
 
 def test_get_all_table_names_in_totesys_db():
-    conn = connect_to_database()
     table_names = get_all_table_names(conn)
 
     assert len(table_names) == 11
@@ -40,7 +49,6 @@ def test_get_all_table_names_in_totesys_db():
     assert 'design' in table_names
 
 def test_get_table_column_names_in_totesys_db():
-    conn = connect_to_database()
     column_names = _get_table_column_names(conn, 'staff')
 
     assert len(column_names) == 7
@@ -52,7 +60,6 @@ def test_get_table_column_names_in_totesys_db():
     assert "staff_id" in column_names
 
 def test_get_table_values():
-    conn = connect_to_database()
     values = _get_table_values(conn, 'staff')
 
     test_value = [v for v in values if v[0]==1][0]
@@ -67,7 +74,6 @@ def test_get_table_values():
     ]
 
 def test_create_list_of_dictionaries():
-    conn = connect_to_database()
     list_of_dicts = create_list_of_dictionaries(conn, 'staff')
     test_dict = [d for d in list_of_dicts if d['staff_id']==1][0]
 
@@ -82,7 +88,6 @@ def test_create_list_of_dictionaries():
     }
 
 def test_list_of_dictionaries_to_json():
-    conn = connect_to_database()
     list_of_dicts = create_list_of_dictionaries(conn, 'staff')
     test_dict = [d for d in list_of_dicts if d['staff_id']==1][0]
     test_json = list_of_dictionaries_to_json(test_dict)
@@ -115,4 +120,4 @@ def test_write_to_json():
 def test_ingest_failure_raises_IngestionError():
     with patch('deploy_ingestion_lambda.src.queries.get_all_table_names', return_value=5):
         with pytest.raises(IngestionError):
-            ingest()
+            ingest(None, None)
