@@ -118,6 +118,6 @@ def test_write_to_json():
     assert response['ResponseMetadata']['HTTPStatusCode'] == 200
 
 def test_ingest_failure_raises_IngestionError():
-    with patch('deploy_ingestion_lambda.src.queries.get_all_table_names', return_value=5):
+    with patch('deploy_ingestion_lambda.lambda_handler.get_all_table_names', return_value=5):
         with pytest.raises(IngestionError):
             ingest(None, None)

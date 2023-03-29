@@ -181,11 +181,13 @@ def list_of_dictionaries_to_json(list_of_dicts):
     return json.dumps(list_of_dicts, indent=4, default=str)
 
 def write_json_to_bucket(json, bucket_name, key):
+    response = None
     try:
         s3 = boto3.client('s3')
-        s3.put_object(Body=json.encode("utf-8"), Bucket=bucket_name, Key=key)
+        response = s3.put_object(Body=json.encode("utf-8"), Bucket=bucket_name, Key=key)
     except:
         raise WriteError('Unable to write JSON to S3 bucket')
+    return response
 
 def get_time_of_query():
     tz = pytz.timezone('Europe/London')
