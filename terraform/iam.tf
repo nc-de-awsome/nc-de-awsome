@@ -28,12 +28,12 @@ data "aws_iam_policy_document" "sm_document_ingest" {
   statement {
     actions = ["secretsmanager:GetSecretValue"]
     resources = [
-      "${data.aws_secrets_manager_secret.totesys_password.arn}",
-      "${data.aws_secrets_manager_secret.totesys_username.arn}",
-      "${data.aws_secrets_manager_secret.totesys_database_name.arn}",
-      "${data.aws_secrets_manager_secret.totesys_host.arn}",
-      "${data.aws_secrets_manager_secret.totesys_port.arn}",
-      "${data.aws_secrets_manager_secret.totesys_region.arn}"
+      "${data.aws_secretsmanager_secret.totesys_password.arn}",
+      "${data.aws_secretsmanager_secret.totesys_username.arn}",
+      "${data.aws_secretsmanager_secret.totesys_database_name.arn}",
+      "${data.aws_secretsmanager_secret.totesys_host.arn}",
+      "${data.aws_secretsmanager_secret.totesys_port.arn}",
+      "${data.aws_secretsmanager_secret.totesys_region.arn}"
     ]
   }
 }
