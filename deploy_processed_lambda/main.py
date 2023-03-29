@@ -8,45 +8,48 @@ import io
 
 
 def transform(event, context):
-    # load all data from transformation bucket
-    staff_df = load_data_frame_from_json('staff')
-    department_df = load_data_frame_from_json('department')
-    design_df = load_data_frame_from_json('design')
-    address_df = load_data_frame_from_json('address')
-    counterparty_df = load_data_frame_from_json('counterparty')
-    sales_order_df = load_data_frame_from_json('sales_order')
-    currency_df = load_data_frame_from_json('currency')
-    payment_df = load_data_frame_from_json('payment')
-    transaction_df = load_data_frame_from_json('transaction')
+    try:
+        # load all data from transformation bucket
+        staff_df = load_data_frame_from_json('staff')
+        department_df = load_data_frame_from_json('department')
+        design_df = load_data_frame_from_json('design')
+        address_df = load_data_frame_from_json('address')
+        counterparty_df = load_data_frame_from_json('counterparty')
+        sales_order_df = load_data_frame_from_json('sales_order')
+        currency_df = load_data_frame_from_json('currency')
+        payment_df = load_data_frame_from_json('payment')
+        transaction_df = load_data_frame_from_json('transaction')
 
-    # get/load other data
-    currency_name_df = load_data_frame_from_csv('./other_data/currencies.csv')
-    # update_forex_rates()
+        # get/load other data
+        currency_name_df = load_data_frame_from_csv('./other_data/currencies.csv')
+        # update_forex_rates()
 
-    # transform data into fact and dim tables
-    dim_staff = generate_dim_staff(staff_df, department_df)
-    dim_design = generate_dim_design(design_df)
-    dim_location = generate_dim_location(address_df)
-    dim_counterparty = generate_dim_counterparty(counterparty_df, address_df)
-    dim_date = generate_dim_date()
-    dim_currency = generate_dim_currency(currency_df, currency_name_df)
-    dim_payment = generate_dim_payment_type(payment_df, transaction_df)
-    dim_transaction = generate_dim_transaction(transaction_df)
-    fact_purchase_order = generate_fact_purchase_order()
-    fact_payment = generate_fact_payment()
+        # transform data into fact and dim tables
+        dim_staff = generate_dim_staff(staff_df, department_df)
+        dim_design = generate_dim_design(design_df)
+        dim_location = generate_dim_location(address_df)
+        dim_counterparty = generate_dim_counterparty(counterparty_df, address_df)
+        dim_date = generate_dim_date()
+        dim_currency = generate_dim_currency(currency_df, currency_name_df)
+        dim_payment = generate_dim_payment_type(payment_df, transaction_df)
+        dim_transaction = generate_dim_transaction(transaction_df)
+        fact_purchase_order = generate_fact_purchase_order()
+        fact_payment = generate_fact_payment()
 
 
-    # writeout fact/dim tables to parquet to load bucket
-    write_data_frame_to_parquet(dim_staff, 'dim_staff')
-    write_data_frame_to_parquet(dim_design, 'dim_design')
-    write_data_frame_to_parquet(dim_location, 'dim_location')
-    write_data_frame_to_parquet(dim_counterparty, 'dim_counterparty')
-    write_data_frame_to_parquet(dim_date, 'dim_date')
-    write_data_frame_to_parquet(dim_currency, 'dim_currency')
-    write_data_frame_to_parquet(dim_payment, 'dim_payment')
-    write_data_frame_to_parquet(dim_transaction, 'dim_transaction')
-    write_data_frame_to_parquet(fact_purchase_order, 'fact_purchase_order')
-    write_data_frame_to_parquet(fact_payment, 'fact_payment')
+        # writeout fact/dim tables to parquet to load bucket
+        write_data_frame_to_parquet(dim_staff, 'dim_staff')
+        write_data_frame_to_parquet(dim_design, 'dim_design')
+        write_data_frame_to_parquet(dim_location, 'dim_location')
+        write_data_frame_to_parquet(dim_counterparty, 'dim_counterparty')
+        write_data_frame_to_parquet(dim_date, 'dim_date')
+        write_data_frame_to_parquet(dim_currency, 'dim_currency')
+        write_data_frame_to_parquet(dim_payment, 'dim_payment')
+        write_data_frame_to_parquet(dim_transaction, 'dim_transaction')
+        write_data_frame_to_parquet(fact_purchase_order, 'fact_purchase_order')
+        write_data_frame_to_parquet(fact_payment, 'fact_payment')
+    except Exception as e:
+        raise TransformationError(f'{e}')
 
 def generate_dim_staff(staff_df, department_df):
     return staff_df.join(
@@ -214,31 +217,26 @@ def update_forex_rates():
 # utilities
 
 def load_data_frame_from_json(table_name):
-    return pd.read_json(f'{s3_file_reader(table_name)}')
+    return pd.read_json(f'{s3_file_reader(table_name, fetch_log_timestamp())}')
 
 def load_data_frame_from_csv(filepath):
     return pd.read_csv(f'{filepath}')
 
 def write_data_frame_to_parquet(data_frame, file_name):
-    # data_frame.to_parquet(
-    #     f's3://nc-de-awsome-processed-zone/transformation_parquet/{file_name}.parquet', 
-    #     engine='auto', 
-    #     compression=None, 
-    #     index=False
-    # )
-    parquet_buffer = io.BytesIO()
-    data_frame.to_parquet(parquet_buffer, index=False)
-    parquet_buffer.seek(0)
-    s3 = boto3.client('s3')
-    s3.upload_fileobj(parquet_buffer, 'nc-de-awsome-processed-zone', f'transformation_parquet/{file_name}.parquet')
+    response = None
+    try:
+        parquet_buffer = io.BytesIO()
+        data_frame.to_parquet(parquet_buffer, index=False)
+        parquet_buffer.seek(0)
+        s3 = boto3.client('s3')
+        response = s3.put_object(Body=parquet_buffer, Bucket='nc-de-awsome-processed-zone', Key=f'transformation_parquet/{file_name}.parquet')
+    except Exception:
+        raise WriteError('Unable to write to s3')
+    return response['ResponseMetadata']['HTTPStatusCode']
 
-##################### temp code #####################
-    # write_data_frame_to_local_txt(data_frame, file_name)
-
-##################### temp code #####################
-def write_data_frame_to_local_txt(data_frame, file_name):
-    with open(f'./transformation_parquet/{file_name}.txt', 'w') as f:
-        f.write(data_frame.to_string())
+# def write_data_frame_to_local_txt(data_frame, file_name):
+#     with open(f'./transformation_parquet/{file_name}.txt', 'w') as f:
+#         f.write(data_frame.to_string())
 
 def generate_dim_date():
     df = pd.DataFrame(pd.date_range('1/1/1999','12/31/2023'), columns=['date'])
@@ -286,31 +284,28 @@ def generate_fact_payment():
 
     return fact_payment
 
-def fetch_log_timestamp():
-    client = boto3.client('s3')
-    time_query = client.get_object(Bucket= 'nc-de-awsome-ingestion-zone', Key='query_log.json')
-    return time_query
+def fetch_log_timestamp(key='query_log.json'):
+    time_query_dict = None
+    try:
+        client = boto3.client('s3')
+        time_query = client.get_object(Bucket= 'nc-de-awsome-ingestion-zone', Key=key)
+        time_query_dict = json.loads(time_query['Body'].read().decode())
+    except Exception:
+        raise ReadError('Unable to read JSON from s3 bucket')
+    return time_query_dict['last_successful_query']
 
-# print(fetch_log_timestamp()['Body'].read().decode())
-
-def s3_file_reader(table_name):
+def s3_file_reader(table_name, time_stamp):
     response = None
     try:
         client = boto3.client('s3')
         response = client.get_object(
             Bucket= 'nc-de-awsome-ingestion-zone',
-            Key= f'totesys/23-03-28 06:07:23/{table_name}.json'
+            Key= f'totesys/{time_stamp}/{table_name}.json'
         )
     except Exception:
         raise ReadError('Unable to read JSON from s3 bucket')
     return response['Body'].read().decode()
 
-currency_df = load_data_frame_from_json('staff')
-write_data_frame_to_parquet(currency_df, 'staff')
-
-# Errors - CHANGE
-# failure to read/access 
-# write error
 
 class AwsomeError(Exception):
     pass

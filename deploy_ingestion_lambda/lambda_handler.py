@@ -188,9 +188,10 @@ def write_json_to_bucket(json, bucket_name, key):
 
 def create_log_timestamp(time_of_query):
     obj = {
-        "Last successful query" : time_of_query
+        "last_successful_query" : time_of_query
         # "Last query" : time_of_query,
     }
+    return obj
 
 # Errors
 
@@ -208,3 +209,5 @@ class WriteError(AwsomeError):
 
 class SelectQueryError(AwsomeError):
     pass
+
+ingest(None,None)
