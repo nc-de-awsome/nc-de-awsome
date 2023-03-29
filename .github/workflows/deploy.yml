@@ -7,28 +7,35 @@ on:
       - main
 
 jobs:
-  # run-tests:
-  #   name: run-tests
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout Repo
-  #       uses: actions/checkout@v3
-  #     - name: Get Python
-  #       uses: actions/setup-python@v4
-  #       with:
-  #         python-version: "3.9"
-  #     - name: Get Make
-  #       run: sudo apt install make -y
-  #     - name: Install Application Requirements
-  #       run: make requirements
-  #     - name: Install Dev Dependencies
-  #       run: make dev-setup
-      # - name: Run All Checks
-      #   run: make run-checks
+  run-tests:
+    name: run-tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v3
+      - name: Get Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+      - name: Get Make
+        run: sudo apt install make -y
+      - name: Install Application Requirements
+        run: make requirements
+      - name: Install Dev Dependencies
+        run: make dev-setup
+      - name: Run All Checks
+        env: 
+            TOTESYS_USERNAME: ${{ secrets.TOTESYS_USERNAME }}
+            TOTESYS_DATABASE_NAME: ${{ secrets.TOTESYS_DATABASE_NAME }}
+            TOTESYS_HOST: ${{ secrets.TOTESYS_HOST }}
+            TOTESYS_PASSWORD: ${{ secrets.TOTESYS_PASSWORD }}
+            TOTESYS_PORT: ${{ secrets.TOTESYS_PORT }}
+            TOTESYS_REGION: ${{ secrets.TOTESYS_REGION }}
+        run: make run-checks
 
   deployment:
     name: deploy-dev
-    # needs: run-tests
+    needs: run-tests
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Repo

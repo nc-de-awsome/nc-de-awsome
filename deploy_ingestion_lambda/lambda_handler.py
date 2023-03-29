@@ -209,5 +209,3 @@ class WriteError(AwsomeError):
 
 class SelectQueryError(AwsomeError):
     pass
-
-ingest(None,None)
