@@ -1,3 +1,6 @@
+# --- INGEST LAMBDA ---
+
+# creates policy document for ingestion lambda to access relevant s3 resources
 data "aws_iam_policy_document" "s3_document_ingest" {
   statement {
       actions = ["s3:PutObject"]
@@ -5,23 +8,10 @@ data "aws_iam_policy_document" "s3_document_ingest" {
         "${aws_s3_bucket.ingestion_zone.arn}/*"
       ]
   }
-
-  # statement {
-  #     actions = ["s3:PutObject"]
-  #     resources = [
-  #       "*"
-  #     ]
-  # }
-  
-  statement {
-    actions = ["secretsmanager:GetSecretValue"]
-    resources = [
-      "*" # replace with ARN of the AWS secrets location
-    ]
-  }
 }
 
-data "aws_iam_policy_document" "cw_document" {
+# creates policy document for ingest lambda to use CloudWatch log groups
+data "aws_iam_policy_document" "cw_document_ingest" {
   statement {
     actions   = ["logs:CreateLogGroup"]
     resources = ["arn:aws:logs:${data.aws_region.current_region.name}:${data.aws_caller_identity.current_account.account_id}:*"]
@@ -33,19 +23,43 @@ data "aws_iam_policy_document" "cw_document" {
   }
 }
 
+# creates policy document for ingest lambda to use Secrets Manager
+data "aws_iam_policy_document" "sm_document_ingest" {
+  statement {
+    actions = ["secretsmanager:GetSecretValue"]
+    resources = [
+      "${data.aws_secrets_manager_secret.totesys_password.arn}",
+      "${data.aws_secrets_manager_secret.totesys_username.arn}",
+      "${data.aws_secrets_manager_secret.totesys_database_name.arn}",
+      "${data.aws_secrets_manager_secret.totesys_host.arn}",
+      "${data.aws_secrets_manager_secret.totesys_port.arn}",
+      "${data.aws_secrets_manager_secret.totesys_region.arn}"
+    ]
+  }
+}
+
+# creates s3 policy for ingest lambda
 resource "aws_iam_policy" "s3_policy_ingest" {
-  name_prefix = "s3-policy-${var.ingestion_lambda_name}"
+  name_prefix = "s3-policy-${var.ingestion_lambda_name}-"
   policy      = data.aws_iam_policy_document.s3_document_ingest.json
 }
 
-resource "aws_iam_policy" "cw_policy" {
-  name_prefix = "cw-policy"
-  policy      = data.aws_iam_policy_document.cw_document.json
+# creates CloudWatch policy for ingest lambda
+resource "aws_iam_policy" "cw_policy_ingest" {
+  name_prefix = "cw-policy-${var.ingestion_lambda_name}-"
+  policy      = data.aws_iam_policy_document.cw_document_ingest.json
+}
+
+# creates Secrets Manager policy for ingest lambda
+resource "aws_iam_policy" "sm_policy_ingest" {
+  name_prefix = "sm-policy-${var.ingestion_lambda_name}-"
+  policy      = data.aws_iam_policy_document.sm_document_ingest.json
 }
 
 
+# creates ingest lambda role
 resource "aws_iam_role" "lambda_ingest_role" {
-  name_prefix        = "role-${var.ingestion_lambda_name}"
+  name_prefix        = "role-${var.ingestion_lambda_name}-"
   assume_role_policy = <<EOF
     {
     "Version": "2012-10-17",
@@ -66,6 +80,7 @@ resource "aws_iam_role" "lambda_ingest_role" {
 EOF
 }
 
+# attach ingest lambda policies to ingest lambda role
 resource "aws_iam_role_policy_attachment" "s3_ingest_policy_attachment" {
   role       = aws_iam_role.lambda_ingest_role.name
   policy_arn = aws_iam_policy.s3_policy_ingest.arn
@@ -73,9 +88,17 @@ resource "aws_iam_role_policy_attachment" "s3_ingest_policy_attachment" {
 
 resource "aws_iam_role_policy_attachment" "cw_ingest_policy_attachment" {
   role       = aws_iam_role.lambda_ingest_role.name
-  policy_arn = aws_iam_policy.cw_policy.arn
+  policy_arn = aws_iam_policy.cw_policy_ingest.arn
 }
 
+resource "aws_iam_role_policy_attachment" "sm_ingest_policy_attachment" {
+  role       = aws_iam_role.lambda_ingest_role.name
+  policy_arn = aws_iam_policy.sm_policy_ingest.arn
+}
+
+# --- PROCESS LAMBDA ---
+
+# creates policy document for process lambda to access relevant s3 resources
 data "aws_iam_policy_document" "s3_document_process" {
   statement {
     actions = ["s3:PutObject"]
@@ -91,8 +114,33 @@ data "aws_iam_policy_document" "s3_document_process" {
   }
 }
 
+# creates policy document for process lambda to use CloudWatch log groups
+data "aws_iam_policy_document" "cw_document_process" {
+    statement {
+        actions = ["logs:CreateLogGroup"]
+        resources = ["arn:aws:logs:${data.aws_region.current_region.name}:${data.aws_caller_identity.current_account.account_id}:*"]
+        }
+    statement {
+        actions = ["Logs:CreateLogStream",
+                    "logs:PutLogEvents"]
+        resources = ["arn:aws:logs:${data.aws_region.current_region.name}:${data.aws_caller_identity.current_account.account_id}:log-group:/aws/lambda/${var.process_lambda_name}:*"]
+        }
+}
+# creates s3 policy for process lambda
+resource "aws_iam_policy" "s3_policy_process" {
+  name_prefix = "s3-policy-${var.process_lambda_name}-"
+  policy      = data.aws_iam_policy_document.s3_document_process.json
+}
+
+# creates CloudWatch policy for process lambda
+resource "aws_iam_policy" "cw_policy_process" {
+  name_prefix = "cw-policy-${var.process_lambda_name}-"
+  policy      = data.aws_iam_policy_document.cw_document_process.json
+}
+
+# creates ingest lambda role
 resource "aws_iam_role" "lambda_process_role" {
-  name_prefix        = "role-${var.process_lambda_name}"
+  name_prefix        = "role-${var.process_lambda_name}-"
   assume_role_policy = <<EOF
     {
     "Version": "2012-10-17",
@@ -113,29 +161,13 @@ resource "aws_iam_role" "lambda_process_role" {
 EOF
 }
 
-resource "aws_iam_policy" "s3_policy_process" {
-  name_prefix = "s3-policy-${var.process_lambda_name}"
-  policy      = data.aws_iam_policy_document.s3_document_process.json
-}
-
+# attach process lambda policies to process lambda role
 resource "aws_iam_role_policy_attachment" "s3_process_policy_attachment" {
   role       = aws_iam_role.lambda_process_role.name
   policy_arn = aws_iam_policy.s3_policy_process.arn
 }
 
-# data "aws_iam_policy_document" "cw_document" {
-#     statement {
-#         actions = ["logs:CreateLogGroup"]
-#         resources = ["arn:aws:logs:${data.aws_region.current_region.name}:${data.aws_caller_identity.current_account.account_id}:*"]
-#         }
-#     statement {
-#         actions = ["Logs:CreateLogStream",
-#                     "logs:PutLogEvents"]
-#         resources = ["arn:aws:logs:${data.aws_region.current_region.name}:${data.aws_caller_identity.current_account.account_id}:log-group:/aws/lambda/${var.process_lambda_name}:*"]
-#         }
-# }
-
-# resource "aws_iam_role_policy_attachment" "cw_process_policy_attachment" {
-#     role = aws_iam_role.lambda_process_role.name
-#     policy_arn = aws_iam_policy.cw_policy.arn
-# }
+resource "aws_iam_role_policy_attachment" "cw_process_policy_attachment" {
+    role = aws_iam_role.lambda_process_role.name
+    policy_arn = aws_iam_policy.cw_policy_process.arn
+}
