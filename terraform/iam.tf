@@ -138,7 +138,7 @@ resource "aws_iam_policy" "cw_policy_process" {
   policy      = data.aws_iam_policy_document.cw_document_process.json
 }
 
-# creates ingest lambda role
+# creates process lambda role
 resource "aws_iam_role" "lambda_process_role" {
   name_prefix        = "role-${var.process_lambda_name}-"
   assume_role_policy = <<EOF
