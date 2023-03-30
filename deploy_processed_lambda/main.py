@@ -6,7 +6,7 @@ from datetime import datetime
 import boto3
 import io
 
-def transform():
+def transform(event, context):
     try:
         # load all data from transformation bucket
         staff_df = load_data_frame_from_json('staff')
