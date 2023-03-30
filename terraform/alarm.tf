@@ -1,4 +1,4 @@
-resource "aws_cloudwatch_log_group" "ingestion_zone_log"{
+resource "aws_cloudwatch_log_group" "ingestion_zone_log" {
     name = "/aws/lambda/${var.ingestion_lambda_name}"
 }
 
@@ -26,4 +26,8 @@ resource "aws_cloudwatch_metric_alarm" "alert_ingestion_error" {
     actions_enabled           = "true"
     alarm_description         = "This metric checks for any issue with the ingestion lambda"
     alarm_actions             = ["${aws_sns_topic.error_alerts.arn}"]
+}
+
+resource "aws_cloudwatch_log_group" "process_zone_log" {
+    name = "/aws/lambda/${var.process_lambda_name}"
 }
