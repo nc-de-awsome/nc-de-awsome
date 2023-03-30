@@ -6,8 +6,7 @@ from datetime import datetime
 import boto3
 import io
 
-
-def transform(event, context):
+def transform():
     try:
         # load all data from transformation bucket
         staff_df = load_data_frame_from_json('staff')
@@ -18,7 +17,10 @@ def transform(event, context):
         sales_order_df = load_data_frame_from_json('sales_order')
         currency_df = load_data_frame_from_json('currency')
         payment_df = load_data_frame_from_json('payment')
+        payment_type_df = load_data_frame_from_json('payment_type')
         transaction_df = load_data_frame_from_json('transaction')
+        purchase_order_df = load_data_frame_from_json('purchase_order')
+        fact_sales_order_df = load_data_frame_from_json('sales_order')
 
         # get/load other data
         currency_name_df = load_data_frame_from_csv('./other_data/currencies.csv')
@@ -29,13 +31,13 @@ def transform(event, context):
         dim_design = generate_dim_design(design_df)
         dim_location = generate_dim_location(address_df)
         dim_counterparty = generate_dim_counterparty(counterparty_df, address_df)
-        dim_date = generate_dim_date()
+        dim_date = generate_dim_date(sales_order_df)
         dim_currency = generate_dim_currency(currency_df, currency_name_df)
-        dim_payment = generate_dim_payment_type(payment_df, transaction_df)
+        dim_payment_type = generate_dim_payment_type(payment_type_df)
         dim_transaction = generate_dim_transaction(transaction_df)
-        fact_purchase_order = generate_fact_purchase_order()
-        fact_payment = generate_fact_payment()
-
+        fact_purchase_order = generate_fact_purchase_order(purchase_order_df)
+        fact_payment = generate_fact_payment(payment_df)
+        fact_sales_order_df = generate_fact_sales_order(fact_sales_order_df)
 
         # writeout fact/dim tables to parquet to load bucket
         write_data_frame_to_parquet(dim_staff, 'dim_staff')
@@ -44,12 +46,14 @@ def transform(event, context):
         write_data_frame_to_parquet(dim_counterparty, 'dim_counterparty')
         write_data_frame_to_parquet(dim_date, 'dim_date')
         write_data_frame_to_parquet(dim_currency, 'dim_currency')
-        write_data_frame_to_parquet(dim_payment, 'dim_payment')
+        write_data_frame_to_parquet(dim_payment_type, 'dim_payment_type')
         write_data_frame_to_parquet(dim_transaction, 'dim_transaction')
         write_data_frame_to_parquet(fact_purchase_order, 'fact_purchase_order')
         write_data_frame_to_parquet(fact_payment, 'fact_payment')
     except Exception as e:
         raise TransformationError(f'{e}')
+
+# dim tables
 
 def generate_dim_staff(staff_df, department_df):
     return staff_df.join(
@@ -140,21 +144,44 @@ def generate_dim_currency(currency_df, currency_name_df):
         }
     )
 
-def generate_dim_payment_type(payment_df, transaction_df):
-    return payment_df.join(
-        transaction_df,
-        on='transaction_id',
-        lsuffix='_L'
-    )[
+def generate_dim_payment_type(payment_type_df):
+    return payment_type_df[
+            [
+                'payment_type_id',
+                'payment_type_name',
+            ]
+    ]
+
+def generate_dim_date(sales_order_df):
+    sales_timestamps=sales_order_df[
         [
-            'payment_type_id',
-            'transaction_type',
+            'created_at'
         ]
-    ].rename(
-        columns={
-            'transaction_type' : 'payment_type_name'
-        }
-    )
+    ]
+
+    def create_datetime(timestamp):
+        return pd.to_datetime(
+            pd.Timestamp(timestamp).
+            to_pydatetime().
+            replace(microsecond=0)
+        )
+
+    dicts = []
+    datetimes = [create_datetime(s[0]) for s in sales_timestamps.to_numpy()]
+    for date in datetimes:
+        dicts.append(
+                {
+                    'date_id' : date.date(),
+                    'year' : date.year,
+                    'month' : date.month,
+                    'day' : date.day,
+                    'day_of_week' : date.day_of_week,
+                    'day_name' : date.day_name(),
+                    'month_name' : date.month_name(),
+                    'quarter' : date.quarter
+            }
+        )
+    return pd.DataFrame.from_records(dicts).drop_duplicates(keep='first')
 
 def generate_dim_transaction(transaction_df):
     
@@ -165,12 +192,113 @@ def generate_dim_transaction(transaction_df):
             'sales_order_id',
             'purchase_order_id'
         ]
-    ][
-        [
-            'sales_order_id',
-            'purchase_order_id'
+    ].astype(
+        {
+            'transaction_id': 'int64',
+            'transaction_type': 'object',
+            'sales_order_id': 'int64',
+            'purchase_order_id': 'int64'
+        }
+    )
+
+# fact tables
+
+def generate_fact_purchase_order(purchase_order_df):
+
+    purchase_order_df['created_date'] = purchase_order_df['created_at'].dt.date
+    purchase_order_df['created_time'] = purchase_order_df['created_at'].dt.time
+    purchase_order_df.drop('created_at', axis=1, inplace=True)
+
+    purchase_order_df['last_updated'] = pd.to_datetime(purchase_order_df['last_updated'])
+    purchase_order_df['last_updated_date'] = purchase_order_df['last_updated'].dt.date
+    purchase_order_df['last_updated_time'] = purchase_order_df['last_updated'].dt.time
+    purchase_order_df.drop('last_updated', axis=1, inplace=True)
+    purchase_order_df['purchase_record_id'] = purchase_order_df.index + 1
+    
+    purchase_order_df['agreed_delivery_date'] = pd.to_datetime(purchase_order_df['agreed_delivery_date'], format='%Y-%m-%d').dt.date
+    purchase_order_df['agreed_payment_date'] = pd.to_datetime(purchase_order_df['agreed_payment_date'], format='%Y-%m-%d').dt.date
+    return purchase_order_df.reindex(columns=[
+            "purchase_record_id",
+            "purchase_order_id",
+            "created_date",
+            "created_time",
+            "last_updated_date",
+            "last_updated_time",
+            "staff_id",
+            "counterparty_id",
+            "item_code",
+            "item_quantity",
+            "item_unit_price",
+            "currency_id",
+            "agreed_delivery_date",
+            "agreed_payment_date",
+            "agreed_delivery_location_id"
         ]
-    ].astype(int)
+    )
+
+def generate_fact_payment(payment_df):
+    payment_df['payment_record_id'] = payment_df.index + 1
+    payment_df['created_date'] = payment_df['created_at'].dt.date
+    payment_df['created_time'] = payment_df['created_at'].dt.time
+    payment_df.drop('created_at', axis=1, inplace=True)
+
+    payment_df['last_updated'] = pd.to_datetime(payment_df['last_updated'])
+    payment_df['last_updated_date'] = payment_df['last_updated'].dt.date
+    payment_df['last_updated_time'] = payment_df['last_updated'].dt.time
+    payment_df.drop('last_updated', axis=1, inplace=True)
+    payment_df['payment_date'] = pd.to_datetime(payment_df['payment_date'], format='%Y-%m-%d').dt.date
+
+    payment_df.drop(['counterparty_ac_number', 'company_ac_number'], axis=1, inplace=True)
+
+    return payment_df.reindex(columns=[
+        'payment_record_id',
+        'payment_id',
+        'created_date',
+        'created_time',
+        'last_updated_date',
+        'last_updated_time',
+        'transaction_id',
+        'counterparty_id',
+        'payment_amount',
+        'currency_id',
+        'payment_type_id',
+        'paid',
+        'payment_date'
+    ]
+    )
+
+def generate_fact_sales_order(fact_sales_order_df):
+    fact_sales_order_df['sales_record_id'] = fact_sales_order_df.index + 1
+    fact_sales_order_df['created_date'] = fact_sales_order_df['created_at'].dt.date
+    fact_sales_order_df['created_time'] = fact_sales_order_df['created_at'].dt.time
+    fact_sales_order_df['last_updated'] = pd.to_datetime(fact_sales_order_df['last_updated'])
+    fact_sales_order_df['last_updated_date'] = fact_sales_order_df['last_updated'].dt.date
+    fact_sales_order_df['last_updated_time'] = fact_sales_order_df['last_updated'].dt.time
+    fact_sales_order_df.drop('created_at', axis=1, inplace=True)
+    fact_sales_order_df.drop('last_updated', axis=1, inplace=True)
+    fact_sales_order_df['agreed_delivery_date'] = pd.to_datetime(fact_sales_order_df['agreed_delivery_date'], format='%Y-%m-%d').dt.date
+    fact_sales_order_df['agreed_payment_date'] = pd.to_datetime(fact_sales_order_df['agreed_payment_date'], format='%Y-%m-%d').dt.date
+
+    return fact_sales_order_df.reindex(columns=[
+        'sales_record_id',
+        'sales_order_id',
+        'created_date',
+        'created_time',
+        'last_updated_date',
+        'last_updated_time',
+        'staff_id',
+        'counterparty_id',
+        'units_sold',
+        'unit_price',
+        'currency_id',
+        'design_id',
+        'agreed_payment_date',
+        'agreed_delivery_date',
+        'agreed_delivery_location_id'
+    ]
+    ).rename(columns={'staff_id' : 'sales_staff_id'})
+
+# utilities
 
 def update_forex_rates():
     '''Gets forex rates data, writes to file, and updates at approx 8am each day'''
@@ -214,8 +342,6 @@ def update_forex_rates():
     
     print('Updated forex rates')
 
-# utilities
-
 def load_data_frame_from_json(table_name):
     return pd.read_json(f'{s3_file_reader(table_name, fetch_log_timestamp())}')
 
@@ -234,66 +360,6 @@ def write_data_frame_to_parquet(data_frame, file_name):
         raise WriteError('Unable to write to s3')
     return response['ResponseMetadata']['HTTPStatusCode']
 
-# def write_data_frame_to_local_txt(data_frame, file_name):
-#     with open(f'./transformation_parquet/{file_name}.txt', 'w') as f:
-#         f.write(data_frame.to_string())
-
-def generate_dim_date():
-    df = pd.DataFrame(pd.date_range('1/1/1999','12/31/2023'), columns=['date'])
-    df['date_id'] = df['date']
-    df['year'] = df['date'].dt.year
-    df['month'] = df['date'].dt.month
-    df['day'] = df['date'].dt.day
-    df['day_name'] = df['date'].dt.strftime("%A")
-    df['month_name'] = df['date'].dt.strftime("%B")
-    df['quarter'] = df['date'].dt.quarter
-
-    return df
-
-
-def generate_fact_purchase_order():
-    fact_purchase = load_data_frame_from_json('purchase_order')
-
-    fact_purchase['created_date'] = fact_purchase['created_at'].dt.date
-    fact_purchase['created_time'] = fact_purchase['created_at'].dt.time
-    fact_purchase.drop('created_at', axis=1, inplace=True)
-
-    fact_purchase['last_updated'] = pd.to_datetime(fact_purchase['last_updated'])
-    fact_purchase['last_updated_date'] = fact_purchase['last_updated'].dt.date
-    fact_purchase['last_updated_time'] = fact_purchase['last_updated'].dt.time
-    fact_purchase.drop('last_updated', axis=1, inplace=True)
-    fact_purchase['purchase_record_id'] = fact_purchase.index + 1
-    
-
-    return fact_purchase
-
-
-def generate_fact_payment():
-    fact_payment = load_data_frame_from_json('payment')
-    fact_payment['created_date'] = fact_payment['created_at'].dt.date
-    fact_payment['created_time'] = fact_payment['created_at'].dt.time
-    fact_payment.drop('created_at', axis=1, inplace=True)
-
-    fact_payment['last_updated'] = pd.to_datetime(fact_payment['last_updated'])
-    fact_payment['last_updated_date'] = fact_payment['last_updated'].dt.date
-    fact_payment['last_updated_time'] = fact_payment['last_updated'].dt.time
-    fact_payment.drop('last_updated', axis=1, inplace=True)
-
-    fact_payment.drop(['counterparty_ac_number', 'company_ac_number'], axis=1, inplace=True)
-    fact_payment['payment_record_id'] = fact_payment.index + 1
-
-    return fact_payment
-
-def fetch_log_timestamp(key='query_log.json'):
-    time_query_dict = None
-    try:
-        client = boto3.client('s3')
-        time_query = client.get_object(Bucket= 'nc-de-awsome-ingestion-zone', Key=key)
-        time_query_dict = json.loads(time_query['Body'].read().decode())
-    except Exception:
-        raise ReadError('Unable to read JSON from s3 bucket')
-    return time_query_dict['last_successful_query']
-
 def s3_file_reader(table_name, time_stamp):
     response = None
     try:
@@ -306,6 +372,17 @@ def s3_file_reader(table_name, time_stamp):
         raise ReadError('Unable to read JSON from s3 bucket')
     return response['Body'].read().decode()
 
+def fetch_log_timestamp(key='query_log.json'):
+    time_query_dict = None
+    try:
+        client = boto3.client('s3')
+        time_query = client.get_object(Bucket= 'nc-de-awsome-ingestion-zone', Key=key)
+        time_query_dict = json.loads(time_query['Body'].read().decode())
+    except Exception:
+        raise ReadError('Unable to read JSON from s3 bucket')
+    return time_query_dict['last_successful_query']
+
+# errors
 
 class AwsomeError(Exception):
     pass
