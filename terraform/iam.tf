@@ -36,20 +36,13 @@ data "aws_iam_policy_document" "sm_document_ingest" {
 
 # Create an S3 policy for the ingestion lambda
 resource "aws_iam_policy" "s3_policy_ingest" {
-  name_prefix = "s3-policy-${var.ingestion_lambda_name}" # DASH NEEDS TO BE ADDED NEXT WEEK BEFORE DEPLOYING ANYTHING TO THE NEW SANDBOX!!!!!!!!!!!
+  name_prefix = "s3-policy-${var.ingestion_lambda_name}-" 
   policy      = data.aws_iam_policy_document.s3_document_ingest.json
 }
-
 
 # Create a CloudWatch policy for the ingestion lambda
 resource "aws_iam_policy" "cw_policy_ingest" {
   name_prefix = "cw-policy-${var.ingestion_lambda_name}-"
-  policy      = data.aws_iam_policy_document.cw_document_ingest.json
-}
-
-# TO BE DELETED NEXT WEEK BEFORE DEPLOYING ANYTHING TO THE NEW SANDBOX!!!!!!!!!!!
-resource "aws_iam_policy" "cw_policy" {
-  name_prefix = "cw-policy"
   policy      = data.aws_iam_policy_document.cw_document_ingest.json
 }
 
@@ -61,7 +54,7 @@ resource "aws_iam_policy" "sm_policy_ingest" {
 
 # Create an IAM role for the ingestion lambda
 resource "aws_iam_role" "lambda_ingest_role" {
-  name_prefix        = "role-${var.ingestion_lambda_name}" # DASH NEEDS TO BE ADDED NEXT WEEK BEFORE DEPLOYING ANYTHING TO THE NEW SANDBOX!!!!!!!!!!!
+  name_prefix        = "role-${var.ingestion_lambda_name}-"
   assume_role_policy = <<EOF
     {
       "Version": "2012-10-17",
@@ -84,7 +77,7 @@ resource "aws_iam_role_policy_attachment" "s3_ingest_policy_attachment" {
   policy_arn = aws_iam_policy.s3_policy_ingest.arn
 }
 
-resource "aws_iam_role_policy_attachment" "new_cw_ingest_policy_attachment" { # THE new_ SHALL BE REMOVED ONCE THE RESOURCE BLOCK IN LINE 97 IS GONE!!!!!!!!
+resource "aws_iam_role_policy_attachment" "cw_ingest_policy_attachment" { 
   role       = aws_iam_role.lambda_ingest_role.name
   policy_arn = aws_iam_policy.cw_policy_ingest.arn
 }
@@ -92,12 +85,6 @@ resource "aws_iam_role_policy_attachment" "new_cw_ingest_policy_attachment" { # 
 resource "aws_iam_role_policy_attachment" "sm_ingest_policy_attachment" {
   role       = aws_iam_role.lambda_ingest_role.name
   policy_arn = aws_iam_policy.sm_policy_ingest.arn
-}
-
-# TO BE DELETED NEXT WEEK BEFORE DEPLOYING ANYTHING TO THE NEW SANDBOX!!!!!!!!!!!
-resource "aws_iam_role_policy_attachment" "cw_ingest_policy_attachment" {
-  role       = aws_iam_role.lambda_ingest_role.name
-  policy_arn = aws_iam_policy.cw_policy.arn
 }
 
 # --- PROCESS LAMBDA ---
@@ -127,7 +114,7 @@ data "aws_iam_policy_document" "cw_document_process" {
 
 # Create an S3 policy for the process lambda
 resource "aws_iam_policy" "s3_policy_process" {
-  name_prefix = "s3-policy-${var.process_lambda_name}"  # DASH NEEDS TO BE ADDED NEXT WEEK BEFORE DEPLOYING ANYTHING TO THE NEW SANDBOX!!!!!!!!!!!
+  name_prefix = "s3-policy-${var.process_lambda_name}-"  
   policy      = data.aws_iam_policy_document.s3_document_process.json
 }
 
@@ -139,7 +126,7 @@ resource "aws_iam_policy" "cw_policy_process" {
 
 # Create an IAM role for the process lambda
 resource "aws_iam_role" "lambda_process_role" {
-  name_prefix        = "role-${var.process_lambda_name}"  # DASH NEEDS TO BE ADDED NEXT WEEK BEFORE DEPLOYING ANYTHING TO THE NEW SANDBOX!!!!!!!!!!!
+  name_prefix        = "role-${var.process_lambda_name}-"  
   assume_role_policy = <<EOF
     {
       "Version": "2012-10-17",
