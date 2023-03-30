@@ -48,6 +48,8 @@ jobs:
         run: sudo apt install make -y
       - name: Install Application Requirements
         run: make requirements
+      - name: create deployment script
+        run: make deploy
       - name: configure aws credentials
         uses: aws-actions/configure-aws-credentials@v2
         with:

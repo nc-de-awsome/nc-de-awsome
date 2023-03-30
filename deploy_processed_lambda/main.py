@@ -5,6 +5,7 @@ import os
 from datetime import datetime
 import boto3
 import io
+import pytz
 
 def transform(event, context):
     try:
@@ -50,6 +51,16 @@ def transform(event, context):
         write_data_frame_to_parquet(dim_transaction, 'dim_transaction')
         write_data_frame_to_parquet(fact_purchase_order, 'fact_purchase_order')
         write_data_frame_to_parquet(fact_payment, 'fact_payment')
+        
+        time_completed_query = get_time_of_query()
+        log_timestamp = create_log_timestamp(time_completed_query)
+        json_time = json.dumps(log_timestamp, indent=4, default=str)
+        write_json_to_bucket(
+                json_time,
+                'nc-de-awsome-processed-zone',
+                f'query_log.json' 
+            )
+        print(f'Transformation @{time_completed_query} complete.')
     except Exception as e:
         raise TransformationError(f'{e}')
 
@@ -381,6 +392,27 @@ def fetch_log_timestamp(key='query_log.json'):
     except Exception:
         raise ReadError('Unable to read JSON from s3 bucket')
     return time_query_dict['last_successful_query']
+
+def get_time_of_query():
+    tz = pytz.timezone('Europe/London')
+    now = datetime.now(tz).strftime('%y-%m-%d %H:%M:%S')
+    return now
+
+def create_log_timestamp(time_of_query):
+    obj = {
+        "last_successful_query" : time_of_query
+        # "Last query" : time_of_query,
+    }
+    return obj
+
+def write_json_to_bucket(json, bucket_name, key):
+    response = None
+    try:
+        s3 = boto3.client('s3')
+        response = s3.put_object(Body=json.encode("utf-8"), Bucket=bucket_name, Key=key)
+    except:
+        raise WriteError('Unable to write JSON to S3 bucket')
+    return response
 
 # errors
 
