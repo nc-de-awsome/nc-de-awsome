@@ -16,7 +16,8 @@ resource "aws_lambda_permission" "allow_cloudwatch_to_call_ingest_lambda" {
   principal     = "events.amazonaws.com"
   source_arn    = aws_cloudwatch_event_rule.every_ten_minutes.arn
 }
-# to update handler and source_code_hash as needed
+
+# handler and source_code_hash to be updated as needed
 resource "aws_lambda_function" "process_lambda" {
   s3_bucket        = aws_s3_bucket.lambda_bucket.bucket
   s3_key           = aws_s3_object.process_lambda_code_deployment.key
@@ -28,11 +29,19 @@ resource "aws_lambda_function" "process_lambda" {
   timeout          = 60
 }
 
-# draft code for process lambda permission to trigger (source_arn tbc)
+resource "aws_lambda_permission" "allow_s3_ingestion_zone_bucket" {
+  action = "lambda:InvokeFunction"
+  function_name = aws_lambda_function.process_lambda.function_name
+  principal = "s3.amazonaws.com"
+  source_arn = aws_s3_bucket.ingestion_zone.arn
+  source_account = data.aws_caller_identity.current_account.account_id
+}
+
+# UNUSED CODE
 # resource "aws_lambda_permission" "allow_cloudwatch_to_call_process_lambda" {
 #   statement_id  = "AllowProcessLambdaExecutionFromCloudWatch"
 #   action        = "lambda:InvokeFunction"
 #   function_name = aws_lambda_function.process_lambda.function_name
 #   principal     = "events.amazonaws.com"
-#   source_arn    = aws_cloudwatch_event_rule.every_ten_minutes.arn
+#   source_arn    = aws_cloudwatch_event_rule.ingestion_log_created.arn
 # }

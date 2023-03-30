@@ -1,32 +1,28 @@
 # --- INGEST LAMBDA ---
-
-# creates policy document for ingestion lambda to access relevant s3 resources
+# Create a policy document for the ingestion lambda to access the relevant S3 resources
 data "aws_iam_policy_document" "s3_document_ingest" {
   statement {
-      actions = ["s3:PutObject"]
-      resources = [
-        "${aws_s3_bucket.ingestion_zone.arn}/*"
-      ]
+    actions   = ["s3:PutObject"]
+    resources = ["${aws_s3_bucket.ingestion_zone.arn}/*"]
   }
 }
 
-# creates policy document for ingest lambda to use CloudWatch log groups
+# Create a policy document for the ingestion lambda to use CloudWatch
 data "aws_iam_policy_document" "cw_document_ingest" {
   statement {
     actions   = ["logs:CreateLogGroup"]
     resources = ["arn:aws:logs:${data.aws_region.current_region.name}:${data.aws_caller_identity.current_account.account_id}:*"]
   }
   statement {
-    actions = ["Logs:CreateLogStream",
-    "logs:PutLogEvents"]
+    actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
     resources = ["arn:aws:logs:${data.aws_region.current_region.name}:${data.aws_caller_identity.current_account.account_id}:log-group:/aws/lambda/${var.ingestion_lambda_name}:*"]
   }
 }
 
-# creates policy document for ingest lambda to use Secrets Manager
+# Create a policy document for the ingestion lambda to use Secrets Manager
 data "aws_iam_policy_document" "sm_document_ingest" {
   statement {
-    actions = ["secretsmanager:GetSecretValue"]
+    actions   = ["secretsmanager:GetSecretValue"]
     resources = [
       "${data.aws_secretsmanager_secret.totesys_password.arn}",
       "${data.aws_secretsmanager_secret.totesys_username.arn}",
@@ -38,55 +34,57 @@ data "aws_iam_policy_document" "sm_document_ingest" {
   }
 }
 
-# creates s3 policy for ingest lambda
+# Create an S3 policy for the ingestion lambda
 resource "aws_iam_policy" "s3_policy_ingest" {
-  name_prefix = "s3-policy-${var.ingestion_lambda_name}-"
+  name_prefix = "s3-policy-${var.ingestion_lambda_name}" # DASH NEEDS TO BE ADDED NEXT WEEK BEFORE DEPLOYING ANYTHING TO THE NEW SANDBOX!!!!!!!!!!!
   policy      = data.aws_iam_policy_document.s3_document_ingest.json
 }
 
-# creates CloudWatch policy for ingest lambda
+
+# Create a CloudWatch policy for the ingestion lambda
 resource "aws_iam_policy" "cw_policy_ingest" {
   name_prefix = "cw-policy-${var.ingestion_lambda_name}-"
   policy      = data.aws_iam_policy_document.cw_document_ingest.json
 }
 
-# creates Secrets Manager policy for ingest lambda
+# TO BE DELETED NEXT WEEK BEFORE DEPLOYING ANYTHING TO THE NEW SANDBOX!!!!!!!!!!!
+resource "aws_iam_policy" "cw_policy" {
+  name_prefix = "cw-policy"
+  policy      = data.aws_iam_policy_document.cw_document_ingest.json
+}
+
+# Create a Secrets Manager policy for the ingestion lambda
 resource "aws_iam_policy" "sm_policy_ingest" {
   name_prefix = "sm-policy-${var.ingestion_lambda_name}-"
   policy      = data.aws_iam_policy_document.sm_document_ingest.json
 }
 
-
-# creates ingest lambda role
+# Create an IAM role for the ingestion lambda
 resource "aws_iam_role" "lambda_ingest_role" {
-  name_prefix        = "role-${var.ingestion_lambda_name}-"
+  name_prefix        = "role-${var.ingestion_lambda_name}" # DASH NEEDS TO BE ADDED NEXT WEEK BEFORE DEPLOYING ANYTHING TO THE NEW SANDBOX!!!!!!!!!!!
   assume_role_policy = <<EOF
     {
-    "Version": "2012-10-17",
-    "Statement": [
+      "Version": "2012-10-17",
+      "Statement": [
         {
-            "Effect": "Allow",
-            "Action": [
-                "sts:AssumeRole"
-            ],
-            "Principal": {
-                "Service": [
-                    "lambda.amazonaws.com"
-                ]
-            }
+          "Effect": "Allow",
+          "Action": ["sts:AssumeRole"],
+          "Principal": {
+            "Service": ["lambda.amazonaws.com"]
+          }
         }
-    ]  
-}
-EOF
+      ]  
+    }
+  EOF
 }
 
-# attach ingest lambda policies to ingest lambda role
+# Attach the S3, CW and SM policies to the IAM role
 resource "aws_iam_role_policy_attachment" "s3_ingest_policy_attachment" {
   role       = aws_iam_role.lambda_ingest_role.name
   policy_arn = aws_iam_policy.s3_policy_ingest.arn
 }
 
-resource "aws_iam_role_policy_attachment" "cw_ingest_policy_attachment" {
+resource "aws_iam_role_policy_attachment" "new_cw_ingest_policy_attachment" { # THE new_ SHALL BE REMOVED ONCE THE RESOURCE BLOCK IN LINE 97 IS GONE!!!!!!!!
   role       = aws_iam_role.lambda_ingest_role.name
   policy_arn = aws_iam_policy.cw_policy_ingest.arn
 }
@@ -96,78 +94,75 @@ resource "aws_iam_role_policy_attachment" "sm_ingest_policy_attachment" {
   policy_arn = aws_iam_policy.sm_policy_ingest.arn
 }
 
-# --- PROCESS LAMBDA ---
+# TO BE DELETED NEXT WEEK BEFORE DEPLOYING ANYTHING TO THE NEW SANDBOX!!!!!!!!!!!
+resource "aws_iam_role_policy_attachment" "cw_ingest_policy_attachment" {
+  role       = aws_iam_role.lambda_ingest_role.name
+  policy_arn = aws_iam_policy.cw_policy.arn
+}
 
-# creates policy document for process lambda to access relevant s3 resources
+# --- PROCESS LAMBDA ---
+# Create a policy document for the process lambda to access the relevant S3 resources
 data "aws_iam_policy_document" "s3_document_process" {
   statement {
-    actions = ["s3:PutObject"]
-    resources = [
-      "${aws_s3_bucket.processed_zone.arn}/*"
-    ]
+    actions   = ["s3:PutObject"]
+    resources = ["${aws_s3_bucket.processed_zone.arn}/*"]
   }
   statement {
-    actions = ["s3:GetObject"]
-    resources = [
-      "${aws_s3_bucket.ingestion_zone.arn}/*"
-    ]
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.ingestion_zone.arn}/*"]
   }
 }
 
-# creates policy document for process lambda to use CloudWatch log groups
+# Create a policy document for the process lambda to use CloudWatch
 data "aws_iam_policy_document" "cw_document_process" {
-    statement {
-        actions = ["logs:CreateLogGroup"]
-        resources = ["arn:aws:logs:${data.aws_region.current_region.name}:${data.aws_caller_identity.current_account.account_id}:*"]
-        }
-    statement {
-        actions = ["Logs:CreateLogStream",
-                    "logs:PutLogEvents"]
-        resources = ["arn:aws:logs:${data.aws_region.current_region.name}:${data.aws_caller_identity.current_account.account_id}:log-group:/aws/lambda/${var.process_lambda_name}:*"]
-        }
+  statement {
+    actions   = ["logs:CreateLogGroup"]
+    resources = ["arn:aws:logs:${data.aws_region.current_region.name}:${data.aws_caller_identity.current_account.account_id}:*"]
+  }
+  statement {
+    actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
+    resources = ["arn:aws:logs:${data.aws_region.current_region.name}:${data.aws_caller_identity.current_account.account_id}:log-group:/aws/lambda/${var.process_lambda_name}:*"]
+  }
 }
-# creates s3 policy for process lambda
+
+# Create an S3 policy for the process lambda
 resource "aws_iam_policy" "s3_policy_process" {
-  name_prefix = "s3-policy-${var.process_lambda_name}-"
+  name_prefix = "s3-policy-${var.process_lambda_name}"  # DASH NEEDS TO BE ADDED NEXT WEEK BEFORE DEPLOYING ANYTHING TO THE NEW SANDBOX!!!!!!!!!!!
   policy      = data.aws_iam_policy_document.s3_document_process.json
 }
 
-# creates CloudWatch policy for process lambda
+# Create a CloudWatch policy for the process lambda
 resource "aws_iam_policy" "cw_policy_process" {
   name_prefix = "cw-policy-${var.process_lambda_name}-"
   policy      = data.aws_iam_policy_document.cw_document_process.json
 }
 
-# creates process lambda role
+# Create an IAM role for the process lambda
 resource "aws_iam_role" "lambda_process_role" {
-  name_prefix        = "role-${var.process_lambda_name}-"
+  name_prefix        = "role-${var.process_lambda_name}"  # DASH NEEDS TO BE ADDED NEXT WEEK BEFORE DEPLOYING ANYTHING TO THE NEW SANDBOX!!!!!!!!!!!
   assume_role_policy = <<EOF
     {
-    "Version": "2012-10-17",
-    "Statement": [
+      "Version": "2012-10-17",
+      "Statement": [
         {
-            "Effect": "Allow",
-            "Action": [
-                "sts:AssumeRole"
-            ],
-            "Principal": {
-                "Service": [
-                    "lambda.amazonaws.com"
-                ]
-            }
+          "Effect": "Allow",
+          "Action": ["sts:AssumeRole"],
+          "Principal": {
+            "Service": ["lambda.amazonaws.com"]
+          }
         }
-    ]  
-}
-EOF
+      ]  
+    }
+  EOF
 }
 
-# attach process lambda policies to process lambda role
+# Attach the S3 and CW policies to the IAM role
 resource "aws_iam_role_policy_attachment" "s3_process_policy_attachment" {
   role       = aws_iam_role.lambda_process_role.name
   policy_arn = aws_iam_policy.s3_policy_process.arn
 }
 
 resource "aws_iam_role_policy_attachment" "cw_process_policy_attachment" {
-    role = aws_iam_role.lambda_process_role.name
-    policy_arn = aws_iam_policy.cw_policy_process.arn
+  role       = aws_iam_role.lambda_process_role.name
+  policy_arn = aws_iam_policy.cw_policy_process.arn
 }
