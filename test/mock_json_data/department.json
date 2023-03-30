@@ -1,0 +1,26 @@
+[
+    {
+        "department_id": 1,
+        "department_name": "Sales",
+        "location": "Manchester",
+        "manager": "Richard Roma",
+        "created_at": "2022-11-03 14:20:49.962000",
+        "last_updated": "2022-11-03 14:20:49.962000"
+    },
+    {
+        "department_id": 2,
+        "department_name": "Purchasing",
+        "location": "Manchester",
+        "manager": "Naomi Lapaglia",
+        "created_at": "2022-11-03 14:20:49.962000",
+        "last_updated": "2022-11-03 14:20:49.962000"
+    },
+    {
+        "department_id": 3,
+        "department_name": "Production",
+        "location": "Leeds",
+        "manager": "Chester Ming",
+        "created_at": "2022-11-03 14:20:49.962000",
+        "last_updated": "2022-11-03 14:20:49.962000"
+    }
+]
