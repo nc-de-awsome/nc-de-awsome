@@ -1,5 +1,5 @@
 from unittest.mock import patch
-from deploy_processed_lambda.src.main import *
+from deploy_processed_lambda.main import *
 import pandas as pd
 from datetime import datetime
 
