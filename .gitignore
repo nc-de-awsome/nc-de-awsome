@@ -17,3 +17,4 @@ venv/
 .terraform*
 .env
 playground.py
+deployment_zips/*
