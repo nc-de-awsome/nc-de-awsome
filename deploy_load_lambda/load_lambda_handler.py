@@ -121,6 +121,7 @@ def create_dim_currency_table(conn):
         )"""
 )
 
+
 def create_dim_date_table(conn):
     conn.run("""
         DROP TABLE IF EXISTS dim_date;
@@ -134,8 +135,11 @@ def create_dim_date_table(conn):
             day_name VARCHAR NOT NULL,
             month_name VARCHAR NOT NULL,
             quarter int NOT NULL
-        )"""
+        )""" 
 )
+
+
+
 
 def create_dim_design_table(conn):
     conn.run("""
