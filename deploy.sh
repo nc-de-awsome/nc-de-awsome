@@ -25,9 +25,8 @@ fi
 mkdir -p deployment_zips/process_package
 
 cp ./deploy_processed_lambda/main.py ./deployment_zips/process_package/main.py
-pip install pandas --target deployment_zips/process_package/
-pip install pyarrow --target deployment_zips/process_package/
-pip install fastparquet --target deployment_zips/process_package/
+pip install pandas --no-deps --target deployment_zips/process_package/
+pip install pyarrow --no-deps --target deployment_zips/process_package/
 pip install pytz --target deployment_zips/process_package/
 cd deployment_zips/process_package/
 zip -r ../deploy_process_lambda.zip .
