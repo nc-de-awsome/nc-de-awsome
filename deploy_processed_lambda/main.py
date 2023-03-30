@@ -52,14 +52,15 @@ def transform(event, context):
         write_data_frame_to_parquet(fact_purchase_order, 'fact_purchase_order')
         write_data_frame_to_parquet(fact_payment, 'fact_payment')
         
-        time_of_query = get_time_of_query()
-        log_timestamp = create_log_timestamp(time_of_query)
+        time_completed_query = get_time_of_query()
+        log_timestamp = create_log_timestamp(time_completed_query)
         json_time = json.dumps(log_timestamp, indent=4, default=str)
         write_json_to_bucket(
                 json_time,
                 'nc-de-awsome-processed-zone',
                 f'query_log.json' 
             )
+        print(f'Transformation @{time_completed_query} complete.')
     except Exception as e:
         raise TransformationError(f'{e}')
 

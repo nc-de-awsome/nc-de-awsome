@@ -17,7 +17,8 @@ def ingest(event, context):
                 'nc-de-awsome-ingestion-zone',
                 f'totesys/{time_of_query}/{table}.json' 
             )
-        log_timestamp = create_log_timestamp(time_of_query)
+        time_completed_query = get_time_of_query()
+        log_timestamp = create_log_timestamp(time_completed_query)
         json_time = json.dumps(log_timestamp, indent=4, default=str)
         write_json_to_bucket(
                 json_time,
@@ -25,7 +26,7 @@ def ingest(event, context):
                 f'query_log.json' 
             )
         conn.close()
-        print(f'Ingestion @{time_of_query} complete.')
+        print(f'Ingestion @{time_completed_query} complete.')
     except Exception as e:
         raise IngestionError(f'{e}')
 
