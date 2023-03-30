@@ -1,0 +1,45 @@
+[
+    {
+        "payment_id": 2,
+        "created_at": "2022-11-03 14:20:52.187000",
+        "last_updated": "2022-11-03 14:20:52.187000",
+        "transaction_id": 2,
+        "counterparty_id": 15,
+        "payment_amount": "552548.62",
+        "currency_id": 2,
+        "payment_type_id": 3,
+        "paid": false,
+        "payment_date": "2022-11-04",
+        "company_ac_number": 67305075,
+        "counterparty_ac_number": 31622269
+    },
+    {
+        "payment_id": 3,
+        "created_at": "2022-11-03 14:20:52.186000",
+        "last_updated": "2022-11-03 14:20:52.186000",
+        "transaction_id": 3,
+        "counterparty_id": 18,
+        "payment_amount": "205952.22",
+        "currency_id": 3,
+        "payment_type_id": 1,
+        "paid": false,
+        "payment_date": "2022-11-03",
+        "company_ac_number": 81718079,
+        "counterparty_ac_number": 47839086
+    },
+    {
+        "payment_id": 5,
+        "created_at": "2022-11-03 14:20:52.187000",
+        "last_updated": "2022-11-03 14:20:52.187000",
+        "transaction_id": 5,
+        "counterparty_id": 17,
+        "payment_amount": "57067.20",
+        "currency_id": 2,
+        "payment_type_id": 3,
+        "paid": false,
+        "payment_date": "2022-11-06",
+        "company_ac_number": 66213052,
+        "counterparty_ac_number": 91659548
+    }
+]
+ 

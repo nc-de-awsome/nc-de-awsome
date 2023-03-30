@@ -146,12 +146,31 @@ def generate_dim_counterparty(counterparty_df, address_df):
         }
     )
 
+def dim_date_table():
+    df = pd.DataFrame(pd.date_range('1/1/2010','12/31/2023'), columns=['date'])
+    df['date_id'] = df['date']
+    df['year'] = df['date'].dt.year
+    df['month'] = df['date'].dt.month
+    df['day'] = df['date'].dt.day
+    df['day_name'] = df['date'].dt.strftime("%A")
+    df['month_name'] = df['date'].dt.strftime("%B")
+    df['quarter'] = df['date'].dt.quarter
+
+    return df
+
 def generate_dim_date(sales_order_df):
-    sales_timestamps=sales_order_df[
+    all_sales_timestamps=sales_order_df[
         [
             'created_at'
         ]
     ]
+    print(all_sales_timestamps)
+    print(type(all_sales_timestamps))
+    sales_timestamps = []
+
+    for st in all_sales_timestamps:
+        if st not in sales_timestamps:
+            sales_timestamps.append(st)
 
     def create_datetime(timestamp):
         return pd.to_datetime(
@@ -165,7 +184,7 @@ def generate_dim_date(sales_order_df):
     for date in datetimes:
         dicts.append(
                 {
-                    'date_id' : date.strftime('%y-%m-%d %H:%M:%S'),
+                    'date_id' : date.date(), # strftime('%y-%m-%d %H:%M:%S'),
                     'year' : date.year,
                     'month' : date.month,
                     'day' : date.day,
@@ -175,8 +194,7 @@ def generate_dim_date(sales_order_df):
                     'quarter' : date.quarter
             }
         )
-    
-    return pd.DataFrame.from_records(dicts)
+    return pd.DataFrame.from_records(dicts).drop_duplicates(keep='last')
 
 def generate_dim_currency(currency_df, currency_name_df):
     return currency_df.join(

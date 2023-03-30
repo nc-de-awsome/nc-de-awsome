@@ -1,0 +1,29 @@
+[
+    {
+        "counterparty_id": 1,
+        "counterparty_legal_name": "Fahey and Sons",
+        "legal_address_id": 1,
+        "commercial_contact": "Micheal Toy",
+        "delivery_contact": "Mrs. Lucy Runolfsdottir",
+        "created_at": "2022-11-03 14:20:51.563000",
+        "last_updated": "2022-11-03 14:20:51.563000"
+    },
+    {
+        "counterparty_id": 2,
+        "counterparty_legal_name": "Leannon, Predovic and Morar",
+        "legal_address_id": 2,
+        "commercial_contact": "Melba Sanford",
+        "delivery_contact": "Jean Hane III",
+        "created_at": "2022-11-03 14:20:51.563000",
+        "last_updated": "2022-11-03 14:20:51.563000"
+    },
+    {
+        "counterparty_id": 3,
+        "counterparty_legal_name": "Armstrong Inc",
+        "legal_address_id": 3,
+        "commercial_contact": "Jane Wiza",
+        "delivery_contact": "Myra Kovacek",
+        "created_at": "2022-11-03 14:20:51.563000",
+        "last_updated": "2022-11-03 14:20:51.563000"
+    }
+]
