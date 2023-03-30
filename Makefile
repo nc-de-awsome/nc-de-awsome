@@ -83,7 +83,7 @@ run-checks: security-test unit-test check-coverage
 
 # Create AWS secret manager
 aws_secrets:
-	$(call execute_in_env, python totesys_creds_manager/creds.py)
+	$(call execute_in_env, python creds_manager/creds.py)
 
 # Deploy
 deploy:

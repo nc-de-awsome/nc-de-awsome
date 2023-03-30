@@ -64,6 +64,11 @@ jobs:
             TOTESYS_PASSWORD: ${{ secrets.TOTESYS_PASSWORD }}
             TOTESYS_PORT: ${{ secrets.TOTESYS_PORT }}
             TOTESYS_REGION: ${{ secrets.TOTESYS_REGION }}
+            DW_USERNAME: ${{ secrets.DW_USERNAME }}
+            DW_DATABASE_NAME: ${{ secrets.DW_DATABASE_NAME }}
+            DW_HOST: ${{ secrets.DW_HOST }}
+            DW_PASSWORD: ${{ secrets.DW_PASSWORD }}
+            DW_PORT: ${{ secrets.DW_PORT }}
         run: make aws_secrets
       - name: Install Terraform
         uses: hashicorp/setup-terraform@v2
