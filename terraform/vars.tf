@@ -17,3 +17,8 @@ variable "process_lambda_name" {
     type = string
     default = "process-lambda"
 }
+
+variable "transformation_error_metric_name" {
+    type = string
+    default = "TransformationErrorCount"
+}
