@@ -4,7 +4,7 @@ import pandas as pd
 from datetime import datetime
 
 def load_data_frame_from_local_json(table_name):
-    return pd.read_json(f'/Users/roshaka/Desktop/northcoders/data-eng/nc-de-awsome/test/mock_json_data/{table_name}.json')
+    return pd.read_json(f'./test/mock_json_data/{table_name}.json')
 
 def test_generate_dim_design():
     design_df = load_data_frame_from_local_json('design')
