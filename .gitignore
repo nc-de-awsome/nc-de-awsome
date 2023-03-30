@@ -16,5 +16,4 @@ serverless-output.yaml
 venv/
 .terraform*
 .env
-playground.py
-deployment_zips/*
+deployment_zips/
