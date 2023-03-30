@@ -139,8 +139,6 @@ def create_dim_date_table(conn):
 )
 
 
-
-
 def create_dim_design_table(conn):
     conn.run("""
     DROP TABLE IF EXISTS dim_design;
