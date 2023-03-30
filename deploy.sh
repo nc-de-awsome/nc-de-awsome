@@ -9,7 +9,6 @@ mkdir -p deployment_zips/ingest_package
 
 cp ./deploy_ingestion_lambda/lambda_handler.py ./deployment_zips/ingest_package/lambda_handler.py
 pip install pg8000 --target deployment_zips/ingest_package/
-pip install boto3 --target deployment_zips/ingest_package/
 pip install pytz --target deployment_zips/ingest_package/
 
 cd deployment_zips/ingest_package/
@@ -29,7 +28,6 @@ cp ./deploy_processed_lambda/main.py ./deployment_zips/process_package/main.py
 pip install pandas --target deployment_zips/process_package/
 pip install pyarrow --target deployment_zips/process_package/
 pip install fastparquet --target deployment_zips/process_package/
-pip install boto3 --target deployment_zips/process_package/
 pip install pytz --target deployment_zips/process_package/
 cd deployment_zips/process_package/
 zip -r ../deploy_process_lambda.zip .
