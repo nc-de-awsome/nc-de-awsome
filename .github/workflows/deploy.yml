@@ -46,8 +46,6 @@ jobs:
           python-version: "3.9"
       - name: Get Make
         run: sudo apt install make -y
-      - name: Install Application Requirements
-        run: make requirements
       - name: create deployment script
         run: make deploy
       - name: configure aws credentials
