@@ -1,14 +1,11 @@
 import pandas as pd
 from datetime import datetime
 import boto3
-import pg8000
+import pg8000.native
 
-def load():
+
+def load(event, context):
     conn = connect_to_database()
-    
-    create_fact_sales_order_table(conn)
-    create_fact_purchase_order_table(conn)
-    create_fact_payment_table(conn)
 
     create_dim_counterparty_table(conn)
     create_dim_currency_table(conn)
@@ -18,6 +15,64 @@ def load():
     create_dim_payment_table(conn)
     create_dim_staff_table(conn)
     create_dim_transaction_table(conn)
+    
+    create_fact_sales_order_table(conn)
+    create_fact_purchase_order_table(conn)
+    create_fact_payment_table(conn)
+
+    dim_counterparty_df = load_data_frame_from_parquet_file('dim_counterparty')
+    dim_currency_df = load_data_frame_from_parquet_file('dim_currency')
+    dim_date_df = load_data_frame_from_parquet_file('dim_date')
+    dim_design_df = load_data_frame_from_parquet_file('dim_design')
+    dim_location_df = load_data_frame_from_parquet_file('dim_location') 
+    dim_payment_df = load_data_frame_from_parquet_file('dim_payment')
+    dim_staff_df = load_data_frame_from_parquet_file('dim_staff')
+    dim_transaction_df = load_data_frame_from_parquet_file('dim_transaction')
+    fact_sales_df = load_data_frame_from_parquet_file('fact_sales')
+    fact_purchase_df = load_data_frame_from_parquet_file('fact_purchase')
+    fact_payment_df = load_data_frame_from_parquet_file('fact_payment')
+    
+    
+    counterpart_list = dataframe_to_list_of_row_values(dim_counterparty_df)
+    currency_list = dataframe_to_list_of_row_values(dim_currency_df)
+    date_list = dataframe_to_list_of_row_values(dim_date_df)
+    design_list = dataframe_to_list_of_row_values(dim_design_df)
+    location_list = dataframe_to_list_of_row_values(dim_location_df)
+    payment_list = dataframe_to_list_of_row_values(dim_payment_df)
+    staff_list = dataframe_to_list_of_row_values(dim_staff_df)
+    transaction_list = dataframe_to_list_of_row_values(dim_transaction_df)
+    fact_sales_list = dataframe_to_list_of_row_values(fact_sales_df)
+    fact_purchase_list = dataframe_to_list_of_row_values(fact_purchase_df)
+    fact_payment_list = dataframe_to_list_of_row_values(fact_payment_df)
+    
+
+    insert_dim_counterparty_to_dw(conn, counterpart_list)
+    insert_dim_currency_to_dw(conn, currency_list)
+    insert_dim_date_to_dw(conn, date_list)
+    insert_dim_design_to_dw(conn, design_list)
+    insert_dim_location_to_dw(conn, location_list)
+    insert_dim_payment_to_dw(conn, payment_list)
+    insert_dim_staff_to_dw(conn, staff_list)
+    insert_dim_transaction_to_dw(conn, transaction_list)
+
+    insert_fact_sales_order_to_dw(conn, fact_sales_list)
+    insert_fact_purchase_to_dw(conn, fact_purchase_list)
+    insert_fact_payment_order_to_dw(conn, fact_payment_list)
+
+# errors
+
+class AwsomeError(Exception):
+    pass
+
+class DatabaseConnectionError(AwsomeError):
+    pass
+
+
+class WriteError(AwsomeError):
+    pass
+
+class ReadError(AwsomeError):
+    pass
 
 # create fact tables
 
@@ -28,20 +83,20 @@ def create_fact_sales_order_table(conn):
     CREATE TABLE fact_sales_order (
         sales_record_id INT PRIMARY KEY NOT NULL,
         sales_order_id INT NOT NULL,
-        created_date DATE NOT NULL,
+        created_date DATE NOT NULL REFERENCES dim_date(date_id),
         created_time TIME NOT NULL,
-        last_updated_date DATE NOT NULL,
+        last_updated_date DATE NOT NULL REFERENCES dim_date(date_id),
         last_updated_time TIME NOT NULL,
-        sales_staff_id INT NOT NULL,
-        counterparty_id INT NOT NULL,
+        sales_staff_id INT NOT NULL REFERENCES dim_staff(staff_id),
+        counterparty_id INT NOT NULL REFERENCES dim_counterparty(counterparty_id),
         units_sold INT NOT NULL,
         unit_price NUMERIC(10, 2) NOT NULL,
-        currency_id INT NOT NULL,
-        design_id INT NOT NULL,
-        agreed_payment_date DATE NOT NULL,
-        agreed_delivery_date DATE NOT NULL,
-        agreed_delivery_location_id INT NOT NULL
-    )
+        currency_id INT NOT NULL REFERENCES dim_currency(currency_id),
+        design_id INT NOT NULL REFERENCES dim_design(design_id),
+        agreed_payment_date DATE NOT NULL REFERENCES dim_date(date_id),
+        agreed_delivery_date DATE NOT NULL REFERENCES dim_date(date_id),
+        agreed_delivery_location_id INT NOT NULL REFERENCES dim_location(location_id)
+    );
     """
 )
 
@@ -51,24 +106,24 @@ def create_fact_purchase_order_table(conn):
     
     CREATE TABLE IF EXISTS fact_purchase_order (
         purchase_record_id SERIAL PRIMARY KEY,
-        purchase_order_id INT PRIMARY KEY,
-        created_date DATE NOT NULL,
-        created_time TIME NOT NULL,
-        last_updated_date DATE NOT_NULL,
+        purchase_order_id INT,
+        created_date DATE NOT NULL REFERENCES dim_date(date_id),
+        created_time TIME NOT NULL ,
+        last_updated_date DATE NOT_NULL REFERENCES dim_date(date_id),
         last_updated_time TIME NOT_NULL,
-        staff_id INT NOT NULL,
-        counterparty_id INT NOT NULL,
-        tem_code VARCHAR NOT NULL,
+        staff_id INT NOT NULL REFERENCES dim_staff(staff_id),
+        counterparty_id INT NOT NULL REFERENCES dim_counterparty(counterparty_id),
+        item_code VARCHAR NOT NULL,
         item_quantity INT NOT NULL,
         item_unit_price NUMERIC NOT NULL,
-        currency_id INT NOT NULL,
-        agreed_delivery_date DATE NOT NULL,
-        agreed_payment_date DATE NOT NULL,
-        agreed_delivery_location_id INT NOT NULL
-    )
+        currency_id INT NOT NULL REFERENCES dim_currency(currency_id),
+        agreed_delivery_date DATE NOT NULL REFERENCES dim_date(date_id),
+        agreed_payment_date DATE NOT NULL REFERENCES dim_date(date_id),
+        agreed_delivery_location_id INT NOT NULL REFERENCES dim_location(location_id)
+    );
     """
 )
-    
+
 def create_fact_payment_table(conn):
     conn.run("""
     DROP TABLE IF EXISTS fact_payment;
@@ -76,19 +131,20 @@ def create_fact_payment_table(conn):
     CREATE TABLE fact_payment (
         payment_record_id PRIMARY SERIAL NUMBER,
         payment_id INT NOT NULL,
-        created_date DATE NOT NULL,
+        created_date DATE NOT NULL REFERENCES dim_date(date_id),
         created_time TIME NOT NULL,
-        last_updated_date DATE NOT NULL,
+        last_updated_date DATE NOT NULL REFERENCES dim_date(date_id),
         last_updated_time TIME NOT NULL,
-        transaction_id INT NOT NULL,
-        counterparty_id INT NOT NULL,
+        transaction_id INT NOT NULL REFERENCES dim_transaction(transaction_id),
+        counterparty_id INT NOT NULL REFERENCES dim_counterparty(counterparty_id),
         payment_amount NUMERIC NOT NULL,
-        currency_id INT NOT NULL,
-        payment_type_id INT NOT NULL,
+        currency_id INT NOT NULL REFERENCES dim_currency(currency_id),
+        payment_type_id INT NOT NULL REFERENCES dim_payment_type(payment_type_id),
         paid BOOLEAN NOT NULL,
-        payment_date DATE NOT NULL
+        payment_date DATE NOT NULL REFERENCES dim_date(date_id)
 
-    )"""
+    );
+    """
 )
     
 # create dim tables
@@ -203,12 +259,6 @@ def create_dim_transaction_table(conn):
     )"""
 )
 
-
-# insert values
-
-
-
-
 # connection to database
 
 def connect_to_database():
@@ -270,20 +320,213 @@ def get_region():
 
 # utils
 
-def load_data_frame_from_parquet_file(filename):
-    return pd.read_parquet(f"./transformation_parquet/dim_{filename}.parquet")
+def load_data_frame_from_parquet_file(table_name):
+    response = None
+    try:
+        client = boto3.client('s3')
+        response = client.get_object(
+            Bucket= 'nc-de-awsome-processed-zone',
+            Key= f'transformation_parquet/{table_name}.parquet'
+        )
+    except Exception:
+        raise ReadError('Unable to read Parquet from s3 bucket')
+    df = pd.read_parquet(response['Body'].read().decode())
+    return df
+        
+    
 
 def dataframe_to_list_of_row_values(data_frame):
-    return data_frame.to_numpy().tolist()
+    return data_frame.values.tolist()
 
-# errors
+# insert values
+def insert_dim_counterparty_to_dw(conn, data):
+    cursor = conn.cursor()
+    sql = '''INSERT INTO dim_counterparty (
+    counterparty_id,
+    counterparty_legal_name,
+    counterparty_legal_address_line_1,
+    counterparty_legal_address_line2,
+    counterparty_legal_district,
+    counterparty_legal_city,
+    counterparty_legal_postal_code,
+    ounterparty_legal_country,
+    counterparty_legal_phone_number    
+    ) 
+    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);'''
+    cursor.executemany(sql, data)
+    conn.commit()
+    cursor.close()
+    conn.close()
 
-class AwsomeError(Exception):
-    pass
+def insert_dim_currency_to_dw(conn, data):
+    cursor = conn.cursor()
+    sql = '''INSERT INTO dim_currency (
+            currency_id,
+            currency_code,
+            currency_name)
+            VALUES (%s, %s, %s);'''
+    cursor.executemany(sql, data)
+    conn.commit()
+    cursor.close()
+    conn.close()
 
-class DatabaseConnectionError(AwsomeError):
-    pass
+def insert_dim_date_to_dw(conn,data):
+    cursor = conn.cursor()
+    sql = '''INSERT INTO dim_date (
+        date_id, 
+        year, 
+        month, 
+        day, 
+        day_of_week, 
+        day_name, 
+        month_name, 
+        quarter) 
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s);'''
+    cursor.executemany(sql, data)
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def insert_dim_design_to_dw(conn,data):
+    cursor = conn.cursor()
+    sql = '''INSERT INTO dim_design (
+            design_id, 
+            design_name, 
+            file_location, 
+            file_name)  
+            VALUES (%s, %s, %s, %s);'''
+    cursor.executemany(sql, data)
+    conn.commit()
+    cursor.close()
+    conn.close()   
+
+def insert_dim_location_to_dw(conn, data):
+    cursor = conn.cursor()
+    sql = '''INSERT INTO dim_location (
+            location_id,
+            address_line_1,
+            address_line_2,
+            district,
+            city,
+            postal_code,
+            country,
+            phone)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s);'''
+    cursor.executemany(sql, data)
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def insert_dim_payment_to_dw(conn, data):
+    cursor = conn.cursor()
+    sql = '''INSERT INTO dim_payment (
+            payment_type_id,
+            payment_type_namee)
+            VALUES (%s, %s);'''
+    cursor.executemany(sql, data)
+    conn.commit()
+    cursor.close()
+    conn.close()    
+
+def insert_dim_staff_to_dw(conn, data):
+    cursor = conn.cursor()
+    sql = '''INSERT INTO dim_staff (
+            staff_id,
+            first_name,
+            last_name,
+            department_name,
+            location,
+            email_address)
+            VALUES (%s, %s, %s, %s, %s, %s);'''
+    cursor.executemany(sql, data)
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def insert_dim_transaction_to_dw(conn, data):
+    cursor = conn.cursor()
+    sql = '''INSERT INTO dim_transaction (
+            transaction_id,
+            transaction_type,
+            sales_order_id,
+            purchase_order_id)
+            VALUES (%s, %s, %s, %s);'''
+    cursor.executemany(sql, data)
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def insert_fact_purchase_to_dw(conn, data):
+    cursor = conn.cursor()
+    sql = '''INSERT INTO fact_purchase (
+            purchase_record_id,
+            purchase_order_id,
+            created_date DATE,
+            created_time,
+            last_updated_date,
+            last_updated_time,
+            staff_id,
+            counterparty_id,
+            dim_counterparty,
+            item_code,
+            item_quantity,
+            item_unit_price,
+            currency_id,
+            agreed_delivery_date,
+            agreed_payment_date,
+            agreed_delivery_location_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'''
+    cursor.executemany(sql, data)
+    conn.commit()
+    cursor.close()
+    conn.close()
+
+def insert_fact_sales_order_to_dw(conn, data):
+    cursor = conn.cursor()
+    sql = '''INSERT INTO fact_sales_order (
+            sales_record_id,
+            sales_order_id,
+            created_date,
+            created_time,
+            last_updated_date,
+            last_updated_time,
+            sales_staff_id,
+            counterparty_id,
+            units_sold,
+            unit_price,
+            currency_id,
+            design_id,
+            agreed_payment_date,
+            agreed_delivery_date,
+            agreed_delivery_location_id)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'''
+    cursor.executemany(sql, data)
+    conn.commit()
+    cursor.close()
+    conn.close()    
+    
+
+def insert_fact_payment_order_to_dw(conn, data):
+    cursor = conn.cursor()
+    sql = '''INSERT INTO fact_payment_order (
+            payment_record_id,
+            payment_id,
+            created_date,
+            created_time,
+            last_updated_date,
+            last_updated_time,
+            transaction_id,
+            counterparty_id,
+            payment_amount,      
+            currency_id,
+            payment_type_id,
+            paid,
+            payment_date)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'''
+    cursor.executemany(sql, data)
+    conn.commit()
+    cursor.close()
+    conn.close() 
 
 
-class WriteError(AwsomeError):
-    pass
+load(None, None)
