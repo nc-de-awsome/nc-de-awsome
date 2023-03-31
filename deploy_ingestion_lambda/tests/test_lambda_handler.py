@@ -30,7 +30,7 @@ def aws_credentials():
     os.environ['AWS_SECRET_ACCESS_KEY'] = 'test'
     os.environ['AWS_SECURITY_TOKEN'] = 'test'
     os.environ['AWS_SESSION_TOKEN'] = 'test'
-    os.environ['AWS_DEFAULT_REGION'] = 'eu-west-2'
+    os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
 
 def test_get_all_table_names_in_totesys_db():
     table_names = get_all_table_names(conn)
@@ -139,7 +139,7 @@ def test_get_secret_from_secretsmanager():
 
 def test_get_secret_raises_error_if_secret_not_found():
     with pytest.raises(DatabaseConnectionError):
-        client = boto3.client('secretsmanager')
+        client = boto3.client('secretsmanager', region_name='us-east-1')
         get_secret('secret_not_here')
 
 
