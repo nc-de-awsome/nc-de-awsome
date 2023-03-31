@@ -153,3 +153,85 @@ resource "aws_iam_role_policy_attachment" "cw_process_policy_attachment" {
   role       = aws_iam_role.lambda_process_role.name
   policy_arn = aws_iam_policy.cw_policy_process.arn
 }
+
+# --- LOAD LAMBDA ---
+# Create a policy document for the load lambda to access the relevant S3 resources
+data "aws_iam_policy_document" "s3_document_load" {
+  statement {
+    actions   = ["s3:GetObject"]
+    resources = ["${aws_s3_bucket.processed_zone.arn}/*"]
+  }
+}
+
+# Create a policy document for the load lambda to use CloudWatch
+data "aws_iam_policy_document" "cw_document_load" {
+  statement {
+    actions   = ["logs:CreateLogGroup"]
+    resources = ["arn:aws:logs:${data.aws_region.current_region.name}:${data.aws_caller_identity.current_account.account_id}:*"]
+  }
+  statement {
+    actions   = ["logs:CreateLogStream", "logs:PutLogEvents"]
+    resources = ["arn:aws:logs:${data.aws_region.current_region.name}:${data.aws_caller_identity.current_account.account_id}:log-group:/aws/lambda/${var.load_lambda_name}:*"]
+  }
+}
+
+# Create a policy document for the load lambda to use Secrets Manager
+data "aws_iam_policy_document" "sm_document_load" {
+  statement {
+    actions   = ["secretsmanager:GetSecretValue"]
+    resources = ["*"] # to be updated once the Data Warehouse secrets are stored
+  }
+}
+
+# Create an S3 policy for the load lambda
+resource "aws_iam_policy" "s3_policy_load" {
+  name_prefix = "s3-policy-${var.load_lambda_name}-" 
+  policy      = data.aws_iam_policy_document.s3_document_load.json
+}
+
+# Create a CloudWatch policy for the load lambda
+resource "aws_iam_policy" "cw_policy_load" {
+  name_prefix = "cw-policy-${var.load_lambda_name}-"
+  policy      = data.aws_iam_policy_document.cw_document_load.json
+}
+
+# Create a Secrets Manager policy for the load lambda
+resource "aws_iam_policy" "sm_policy_load" {
+  name_prefix = "sm-policy-${var.load_lambda_name}-"
+  policy      = data.aws_iam_policy_document.sm_document_load.json
+}
+
+# Create an IAM role for the load lambda
+resource "aws_iam_role" "lambda_load_role" {
+  name_prefix        = "role-${var.load_lambda_name}-"
+  assume_role_policy = <<EOF
+    {
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": ["sts:AssumeRole"],
+          "Principal": {
+            "Service": ["lambda.amazonaws.com"]
+          }
+        }
+      ]  
+    }
+  EOF
+}
+
+# Attach the S3, CW and SM policies to the IAM role
+resource "aws_iam_role_policy_attachment" "s3_load_policy_attachment" {
+  role       = aws_iam_role.lambda_load_role.name
+  policy_arn = aws_iam_policy.s3_policy_load.arn
+}
+
+resource "aws_iam_role_policy_attachment" "cw_load_policy_attachment" { 
+  role       = aws_iam_role.lambda_load_role.name
+  policy_arn = aws_iam_policy.cw_policy_load.arn
+}
+
+resource "aws_iam_role_policy_attachment" "sm_load_policy_attachment" {
+  role       = aws_iam_role.lambda_load_role.name
+  policy_arn = aws_iam_policy.sm_policy_load.arn
+}
