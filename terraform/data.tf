@@ -26,26 +26,23 @@ data "aws_secretsmanager_secret" "totesys_region" {
   name = "TOTESYS_REGION"
 }
 
+data "aws_secretsmanager_secret" "dw_password" {
+  name = "DW_PASSWORD"
+}
 
-# data "archive_file" "ingestion-lambda" {
-#     type = "zip"
-#     # output_path = "${path.module}/../deploy_ingestion_lambda.zip"
-#     source_dir = "${path.module}/../dist/deploy_ingestion_lambda"
+data "aws_secretsmanager_secret" "dw_username" {
+  name = "DW_USERNAME"
+}
 
-#   #   excludes    = [
-#   #   "__pycache__",
-#   #   "src/__pycache__",
-#   #   "tests/__pycache__",
-#   #   "tests",
-#   #   "src"
-#   # ]
+data "aws_secretsmanager_secret" "dw_database_name" {
+  name = "DW_DATABASE_NAME"
+}
 
-# #     # depends_on = [null_resource.install_dependencies]
-#  }
+data "aws_secretsmanager_secret" "dw_host" {
+  name = "DW_HOST"
+}
 
-# resource "null_resource" "install_dependencies" {
-#   provisioner "local-exec" {
-#     command = "pip install -r ${path.module}/../requirements.txt -t ${path.module}/../deploy_ingestion_lambda/lib/python3.9/site-packages/ --upgrade"
-#   }
-# }
+data "aws_secretsmanager_secret" "dw_port" {
+  name = "DW_PORT"
+}
 
