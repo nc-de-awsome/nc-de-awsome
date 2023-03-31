@@ -129,10 +129,10 @@ def test_get_table_values_raises_SelectQueryError():
 @pytest.fixture(scope='function')
 def secretsmanager(aws_credentials):
     with mock_secretsmanager():
-        yield boto3.client('secretsmanager')
+        yield boto3.client('secretsmanager', region_name='us-east-1')
 
 def test_get_secret_from_secretsmanager():
-    client = boto3.client('secretsmanager')
+    client = boto3.client('secretsmanager', region_name='us-east-1')
     client.create_secret(Name='test_key', SecretString='secret_value')
     secret = get_secret('test_key')
     assert secret == 'secret_value'
