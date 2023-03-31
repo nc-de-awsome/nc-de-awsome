@@ -38,7 +38,7 @@ def transform(event, context):
         dim_transaction = generate_dim_transaction(transaction_df)
         fact_purchase_order = generate_fact_purchase_order(purchase_order_df)
         fact_payment = generate_fact_payment(payment_df)
-        fact_sales_order_df = generate_fact_sales_order(fact_sales_order_df)
+        fact_sales_order = generate_fact_sales_order(fact_sales_order_df)
 
         # writeout fact/dim tables to parquet to load bucket
         write_data_frame_to_parquet(dim_staff, 'dim_staff')
@@ -51,6 +51,7 @@ def transform(event, context):
         write_data_frame_to_parquet(dim_transaction, 'dim_transaction')
         write_data_frame_to_parquet(fact_purchase_order, 'fact_purchase_order')
         write_data_frame_to_parquet(fact_payment, 'fact_payment')
+        write_data_frame_to_parquet(fact_sales_order, 'fact_sales_order')
         
         time_completed_query = get_time_of_query()
         log_timestamp = create_log_timestamp(time_completed_query)
