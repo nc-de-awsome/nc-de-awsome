@@ -32,42 +32,21 @@ def ingest(event, context):
 
 def connect_to_database():
     '''Establishes and returns a native pg8000 connection to database_name'''
-    try: 
-        _user=get_username()
-    except: raise DatabaseConnectionError('Unable to get_username()')
-    
-    try: 
-        _host=get_host()
-    except: raise DatabaseConnectionError('Unable to get_host()')
-    
-    try :
-        _database=get_db_name()
-    except: raise DatabaseConnectionError('Unable to get_db_name()')
-
-    try : 
-        _port=get_port()
-    except: raise DatabaseConnectionError('Unable to get_port()')
-
-    try : 
-        _password=get_db_password()
-    except:
-        raise DatabaseConnectionError('Unable to get_password()')
-    
-    try:
-        return  pg8000.native.Connection(
-            user=_user,
-            host =_host,
-            database = _database,
-            port = _port,
-            password=_password
-        )
-    except:
-        raise DatabaseConnectionError('Unable to connect to Totesys database')
+    return pg8000.native.Connection(
+        user = get_username(),
+        host = get_host(),
+        database = get_db_name(),
+        port = get_port(),
+        password = get_db_password()
+    )
 
 def get_secret(key):
-    sm = boto3.client('secretsmanager')
-    secret = sm.get_secret_value(SecretId = key)
-    return secret['SecretString']
+    try:
+        sm = boto3.client('secretsmanager')
+        secret = sm.get_secret_value(SecretId = key)
+        return secret['SecretString']
+    except:
+        raise DatabaseConnectionError(f'Unable to retrieve {key} from secrets manager')
 
 def get_db_password():
     return get_secret('TOTESYS_PASSWORD')
@@ -137,7 +116,7 @@ def _get_table_values(conn, table_name):
             table_name: string
         
         returns:
-            list of strings 
+            list of lists containing string values 
     '''
     try:
         values = conn.run(f'SELECT * FROM {table_name};')
