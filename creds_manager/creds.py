@@ -35,3 +35,4 @@ create_secret('DW_PASSWORD', dw_password)
 create_secret('DW_DATABASE_NAME', dw_database_name)
 create_secret('DW_HOST', dw_host)
 create_secret('DW_PORT', dw_port)
+

@@ -22,7 +22,7 @@ data "aws_iam_policy_document" "cw_document_ingest" {
 # Create a policy document for the ingestion lambda to use Secrets Manager
 data "aws_iam_policy_document" "sm_document_ingest" {
   statement {
-    actions   = ["secretsmanager:GetSecretValue"]
+    actions = ["secretsmanager:GetSecretValue"]
     resources = [
       "${data.aws_secretsmanager_secret.totesys_password.arn}",
       "${data.aws_secretsmanager_secret.totesys_username.arn}",
@@ -36,7 +36,7 @@ data "aws_iam_policy_document" "sm_document_ingest" {
 
 # Create an S3 policy for the ingestion lambda
 resource "aws_iam_policy" "s3_policy_ingest" {
-  name_prefix = "s3-policy-${var.ingestion_lambda_name}-" 
+  name_prefix = "s3-policy-${var.ingestion_lambda_name}-"
   policy      = data.aws_iam_policy_document.s3_document_ingest.json
 }
 
@@ -77,7 +77,7 @@ resource "aws_iam_role_policy_attachment" "s3_ingest_policy_attachment" {
   policy_arn = aws_iam_policy.s3_policy_ingest.arn
 }
 
-resource "aws_iam_role_policy_attachment" "cw_ingest_policy_attachment" { 
+resource "aws_iam_role_policy_attachment" "cw_ingest_policy_attachment" {
   role       = aws_iam_role.lambda_ingest_role.name
   policy_arn = aws_iam_policy.cw_policy_ingest.arn
 }
@@ -114,7 +114,7 @@ data "aws_iam_policy_document" "cw_document_process" {
 
 # Create an S3 policy for the process lambda
 resource "aws_iam_policy" "s3_policy_process" {
-  name_prefix = "s3-policy-${var.process_lambda_name}-"  
+  name_prefix = "s3-policy-${var.process_lambda_name}-"
   policy      = data.aws_iam_policy_document.s3_document_process.json
 }
 
@@ -126,7 +126,7 @@ resource "aws_iam_policy" "cw_policy_process" {
 
 # Create an IAM role for the process lambda
 resource "aws_iam_role" "lambda_process_role" {
-  name_prefix        = "role-${var.process_lambda_name}-"  
+  name_prefix        = "role-${var.process_lambda_name}-"
   assume_role_policy = <<EOF
     {
       "Version": "2012-10-17",
@@ -178,14 +178,20 @@ data "aws_iam_policy_document" "cw_document_load" {
 # Create a policy document for the load lambda to use Secrets Manager
 data "aws_iam_policy_document" "sm_document_load" {
   statement {
-    actions   = ["secretsmanager:GetSecretValue"]
-    resources = ["*"] # to be updated once the Data Warehouse secrets are stored
+    actions = ["secretsmanager:GetSecretValue"]
+    resources = [
+      "${data.aws_secretsmanager_secret.dw_password.arn}",
+      "${data.aws_secretsmanager_secret.dw_username.arn}",
+      "${data.aws_secretsmanager_secret.dw_database_name.arn}",
+      "${data.aws_secretsmanager_secret.dw_host.arn}",
+      "${data.aws_secretsmanager_secret.dw_port.arn}"
+    ]
   }
 }
 
 # Create an S3 policy for the load lambda
 resource "aws_iam_policy" "s3_policy_load" {
-  name_prefix = "s3-policy-${var.load_lambda_name}-" 
+  name_prefix = "s3-policy-${var.load_lambda_name}-"
   policy      = data.aws_iam_policy_document.s3_document_load.json
 }
 
@@ -226,7 +232,7 @@ resource "aws_iam_role_policy_attachment" "s3_load_policy_attachment" {
   policy_arn = aws_iam_policy.s3_policy_load.arn
 }
 
-resource "aws_iam_role_policy_attachment" "cw_load_policy_attachment" { 
+resource "aws_iam_role_policy_attachment" "cw_load_policy_attachment" {
   role       = aws_iam_role.lambda_load_role.name
   policy_arn = aws_iam_policy.cw_policy_load.arn
 }
