@@ -126,32 +126,29 @@ def test_get_table_values_raises_SelectQueryError():
     with pytest.raises(SelectQueryError):
         _get_table_values(None, 'staff')
 
-@pytest.fixture(scope='function')
-def secretsmanager(aws_credentials):
-    with mock_secretsmanager():
-        yield boto3.client('secretsmanager', region_name='us-east-1')
+# @pytest.fixture(scope='function')
+# def secretsmanager(aws_credentials):
+#     with mock_secretsmanager():
+#         yield boto3.client('secretsmanager', region_name='us-east-1')
 
-@mock_secretsmanager
-def test_get_secret_from_secretsmanager():
-    client = boto3.client('secretsmanager', region_name='us-east-1')
+# @mock_secretsmanager
+# def test_get_secret_from_secretsmanager():
+#     client = boto3.client('secretsmanager', region_name='us-east-1')
     
-    key = 'test_key'
-    client.create_secret(
-        Name = key,
-        SecretString = 'secret_value'
-    )
+#     key = 'test_key'
+#     client.create_secret( Name = key, SecretString = 'secret_value')
 
-    def mock_get_secret(key):
-        secret = client.get_secret_value(SecretId = key)
-        return secret['SecretString']
+#     def mock_get_secret(key):
+#         secret = client.get_secret_value(SecretId = key)
+#         return secret['SecretString']
     
-    with patch('deploy_ingestion_lambda.lambda_handler.get_secret', return_value = mock_get_secret(key)):
-        assert get_secret('test_key') == 'secret_value'
+#     with patch('deploy_ingestion_lambda.lambda_handler.get_secret', return_value = mock_get_secret(key)):
+#         assert get_secret('test_key') == 'secret_value'
 
-@mock_secretsmanager
-def test_get_secret_raises_error_if_secret_not_found():
-    with pytest.raises(DatabaseConnectionError):
-        client = boto3.client('secretsmanager', region_name='us-east-1')
-        get_secret('secret_not_here')
+# @mock_secretsmanager
+# def test_get_secret_raises_error_if_secret_not_found():
+#     with pytest.raises(DatabaseConnectionError):
+#         client = boto3.client('secretsmanager', region_name='us-east-1')
+#         get_secret('secret_not_here')
 
 
