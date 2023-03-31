@@ -126,7 +126,7 @@ def test_get_table_values_raises_SelectQueryError():
     with pytest.raises(SelectQueryError):
         _get_table_values(None, 'staff')
 
-@pytest.fixture(scope=function)
+@pytest.fixture(scope='function')
 def secretsmanager(aws_credentials):
     with mock_secretsmanager():
         yield boto3.client('secretsmanager')
@@ -141,5 +141,5 @@ def test_get_secret_raises_error_if_secret_not_found():
     with pytest.raises(DatabaseConnectionError):
         client = boto3.client('secretsmanager')
         get_secret('secret_not_here')
-        
+
 
