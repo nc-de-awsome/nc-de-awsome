@@ -136,8 +136,8 @@ def test_get_secret_from_secretsmanager():
     client = boto3.client('secretsmanager', region_name='us-east-1')
     
     key = 'test_key'
-    client.put_secret_value(
-        SecretId = key,
+    client.create_secret(
+        Name = key,
         SecretString = 'secret_value'
     )
 
