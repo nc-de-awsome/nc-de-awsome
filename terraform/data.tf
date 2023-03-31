@@ -26,23 +26,23 @@ data "aws_secretsmanager_secret" "totesys_region" {
   name = "TOTESYS_REGION"
 }
 
-data "aws_secretsmanager_secret" "dw_password" {
-  name = "DW_PASSWORD"
-}
+# data "aws_secretsmanager_secret" "dw_password" {
+#   name = "DW_PASSWORD"
+# }
 
-data "aws_secretsmanager_secret" "dw_username" {
-  name = "DW_USERNAME"
-}
+# data "aws_secretsmanager_secret" "dw_username" {
+#   name = "DW_USERNAME"
+# }
 
-data "aws_secretsmanager_secret" "dw_database_name" {
-  name = "DW_DATABASE_NAME"
-}
+# data "aws_secretsmanager_secret" "dw_database_name" {
+#   name = "DW_DATABASE_NAME"
+# }
 
-data "aws_secretsmanager_secret" "dw_host" {
-  name = "DW_HOST"
-}
+# data "aws_secretsmanager_secret" "dw_host" {
+#   name = "DW_HOST"
+# }
 
-data "aws_secretsmanager_secret" "dw_port" {
-  name = "DW_PORT"
-}
+# data "aws_secretsmanager_secret" "dw_port" {
+#   name = "DW_PORT"
+# }
 

@@ -1,4 +1,4 @@
-from deploy_processed_lambda.main import *
+from deploy_processed_lambda.lambda_handler import *
 import pytest
 import moto
 from moto.core import patch_client

@@ -23,7 +23,7 @@ resource "aws_lambda_function" "process_lambda" {
   s3_key           = aws_s3_object.process_lambda_code_deployment.key
   function_name    = var.process_lambda_name
   role             = aws_iam_role.lambda_process_role.arn
-  handler          = "main.transform"
+  handler          = "lambda_handler.transform"
   runtime          = "python3.9"
   source_code_hash = filebase64sha256("${path.module}/../deployment_zips/deploy_process_lambda.zip")
   timeout          = 60
