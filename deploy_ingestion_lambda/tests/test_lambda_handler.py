@@ -134,7 +134,7 @@ def secretsmanager(aws_credentials):
 @mock_secretsmanager
 def test_get_secret_from_secretsmanager():
     client = boto3.client('secretsmanager', region_name='us-east-1')
-    client.create_secret(Name='test_key', SecretString='secret_value')
+    client.create_secret(SecretId='test_key', SecretString='secret_value')
     secret = get_secret('test_key')
     assert secret == 'secret_value'
 
