@@ -136,20 +136,17 @@ def test_get_secret_from_secretsmanager():
     client = boto3.client('secretsmanager', region_name='us-east-1')
     
     key = 'test_key'
+    client.put_secret_value(
+        SecretId = key,
+        SecretString = 'secret_value'
+    )
 
     def mock_get_secret(key):
         secret = client.get_secret_value(SecretId = key)
         return secret['SecretString']
     
     with patch('deploy_ingestion_lambda.lambda_handler.get_secret', return_value = mock_get_secret(key)):
-
-        client.put_secret_value(
-            SecretId = key,
-            SecretString = 'secret_value'
-        )
-        
-        secret = get_secret('test_key')
-        assert secret == 'secret_value'
+        assert get_secret('test_key') == 'secret_value'
 
 @mock_secretsmanager
 def test_get_secret_raises_error_if_secret_not_found():
