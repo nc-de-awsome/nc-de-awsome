@@ -51,7 +51,7 @@ jobs:
       - name: create deployment script
         run: make deploy
       - name: configure aws credentials
-        uses: aws-actions/configure-aws-credentials@v3
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.ENV_ACCESS_KEY }}
           aws-secret-access-key: ${{ secrets.ENV_SECRET_KEY }}
