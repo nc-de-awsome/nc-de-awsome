@@ -57,7 +57,7 @@ def test_s3_file_reader():
 
 
 def test_s3_file_reader_errors():
-    with patch('deploy_processed_lambda.main.s3_file_reader', return_value=5):
+    with patch('deploy_processed_lambda.lambda_handler.s3_file_reader', return_value=5):
         with pytest.raises(ReadError):
             s3_file_reader('currency', '23-03-30 06:07:23')
 
@@ -76,7 +76,7 @@ def test_fetch_log_timestamp():
     assert time_stamp == "23-03-29 09:49:05"
 
 def test_fetch_log_timestamp_errors():
-    with patch('deploy_processed_lambda.main.fetch_log_timestamp', return_value=5):
+    with patch('deploy_processed_lambda.lambda_handler.fetch_log_timestamp', return_value=5):
         with pytest.raises(ReadError):
             fetch_log_timestamp('not_query_log.json')
 
@@ -114,13 +114,13 @@ def test_write_data_frame_to_parquet():
         "created_at": "2022-11-03 14:20:49.962000",
         "last_updated": "2022-11-03 14:20:49.962000"
     }
-    with patch('deploy_processed_lambda.main.write_data_frame_to_parquet', return_value=5):
+    with patch('deploy_processed_lambda.lambda_handler.write_data_frame_to_parquet', return_value=5):
         with pytest.raises(WriteError):
             write_data_frame_to_parquet(df_dict, 'currency')
 
 @mock_s3
 def test_transform_error():
-    with patch('deploy_processed_lambda.main.write_data_frame_to_parquet'):
+    with patch('deploy_processed_lambda.lambda_handler.write_data_frame_to_parquet'):
         with pytest.raises(TransformationError):
             transform(None, None)
 
