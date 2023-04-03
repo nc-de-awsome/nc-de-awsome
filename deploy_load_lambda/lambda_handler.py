@@ -1,8 +1,9 @@
 import pandas as pd
 from datetime import datetime
 import boto3
-import pg8000.native
+import pg8000
 import io
+import timeit
 
 
 def load(event, context):
@@ -20,45 +21,52 @@ def load(event, context):
     # create_fact_sales_order_table(conn)
     # create_fact_purchase_order_table(conn)
     # create_fact_payment_table(conn)
+    start_time = timeit.timeit()
     print('Loading parquet from s3')
-    dim_counterparty_df = load_data_frame_from_parquet_file('dim_counterparty')
-    dim_currency_df = load_data_frame_from_parquet_file('dim_currency')
-    dim_date_df = load_data_frame_from_parquet_file('dim_date')
-    dim_design_df = load_data_frame_from_parquet_file('dim_design')
-    dim_location_df = load_data_frame_from_parquet_file('dim_location') 
-    dim_payment_df = load_data_frame_from_parquet_file('dim_payment_type')
-    dim_staff_df = load_data_frame_from_parquet_file('dim_staff')
-    dim_transaction_df = load_data_frame_from_parquet_file('dim_transaction')
+    # dim_counterparty_df = load_data_frame_from_parquet_file('dim_counterparty')
+    # dim_currency_df = load_data_frame_from_parquet_file('dim_currency')
+    # dim_date_df = load_data_frame_from_parquet_file('dim_date')
+    # dim_design_df = load_data_frame_from_parquet_file('dim_design')
+    # dim_location_df = load_data_frame_from_parquet_file('dim_location') 
+    # dim_payment_df = load_data_frame_from_parquet_file('dim_payment_type')
+    # dim_staff_df = load_data_frame_from_parquet_file('dim_staff')
+    # dim_transaction_df = load_data_frame_from_parquet_file('dim_transaction')
     fact_sales_df = load_data_frame_from_parquet_file('fact_sales_order')
     fact_purchase_df = load_data_frame_from_parquet_file('fact_purchase_order')
     fact_payment_df = load_data_frame_from_parquet_file('fact_payment')
+    fact_sales_df.drop('sales_record_id', axis=1, inplace=True)
+    fact_purchase_df.drop('purchase_record_id', axis=1, inplace=True)
+    fact_payment_df.drop('payment_record_id', axis=1, inplace=True)
     
     print('converting pdataframe to nested lists')
-    counterpart_list = dataframe_to_list_of_row_values(dim_counterparty_df)
-    currency_list = dataframe_to_list_of_row_values(dim_currency_df)
-    date_list = dataframe_to_list_of_row_values(dim_date_df)
-    design_list = dataframe_to_list_of_row_values(dim_design_df)
-    location_list = dataframe_to_list_of_row_values(dim_location_df)
-    payment_list = dataframe_to_list_of_row_values(dim_payment_df)
-    staff_list = dataframe_to_list_of_row_values(dim_staff_df)
-    transaction_list = dataframe_to_list_of_row_values(dim_transaction_df)
+    # counterpart_list = dataframe_to_list_of_row_values(dim_counterparty_df)
+    # currency_list = dataframe_to_list_of_row_values(dim_currency_df)
+    # date_list = dataframe_to_list_of_row_values(dim_date_df)
+    # design_list = dataframe_to_list_of_row_values(dim_design_df)
+    # location_list = dataframe_to_list_of_row_values(dim_location_df)
+    # payment_list = dataframe_to_list_of_row_values(dim_payment_df)
+    # staff_list = dataframe_to_list_of_row_values(dim_staff_df)
+    # transaction_list = dataframe_to_list_of_row_values(dim_transaction_df)
     fact_sales_list = dataframe_to_list_of_row_values(fact_sales_df)
     fact_purchase_list = dataframe_to_list_of_row_values(fact_purchase_df)
     fact_payment_list = dataframe_to_list_of_row_values(fact_payment_df)
     
     print('now inserting to database')
-    insert_dim_counterparty_to_dw(conn, counterpart_list)
-    insert_dim_currency_to_dw(conn, currency_list)
-    insert_dim_date_to_dw(conn, date_list)
-    insert_dim_design_to_dw(conn, design_list)
-    insert_dim_location_to_dw(conn, location_list)
-    insert_dim_payment_to_dw(conn, payment_list)
-    insert_dim_staff_to_dw(conn, staff_list)
-    insert_dim_transaction_to_dw(conn, transaction_list)
+    # insert_dim_counterparty_to_dw(conn, counterpart_list)
+    # insert_dim_currency_to_dw(conn, currency_list)
+    # insert_dim_date_to_dw(conn, date_list)
+    # insert_dim_design_to_dw(conn, design_list)
+    # insert_dim_location_to_dw(conn, location_list)
+    # insert_dim_payment_to_dw(conn, payment_list)
+    # insert_dim_staff_to_dw(conn, staff_list)
+    # insert_dim_transaction_to_dw(conn, transaction_list)
 
-    insert_fact_sales_order_to_dw(conn, fact_sales_list)
     insert_fact_purchase_to_dw(conn, fact_purchase_list)
     insert_fact_payment_order_to_dw(conn, fact_payment_list)
+    insert_fact_sales_order_to_dw(conn, fact_sales_list)
+    conn.close()
+    end_time = timeit.timeit()
+    print(end_time - start_time, '<--- time elapsed')
     print('load lambda complete')
 
 # errors
@@ -287,7 +295,7 @@ def connect_to_database():
         raise DatabaseConnectionError('Unable to get_password()')
     
     try:
-        return  pg8000.native.Connection(
+        return  pg8000.connect(
             user=_user,
             host =_host,
             database = _database,
@@ -346,21 +354,21 @@ def dataframe_to_list_of_row_values(data_frame):
 def insert_dim_counterparty_to_dw(conn, data):
     cursor = conn.cursor()
     sql = '''INSERT INTO dim_counterparty (
-    counterparty_id,
-    counterparty_legal_name,
-    counterparty_legal_address_line_1,
-    counterparty_legal_address_line2,
-    counterparty_legal_district,
-    counterparty_legal_city,
-    counterparty_legal_postal_code,
-    ounterparty_legal_country,
-    counterparty_legal_phone_number    
+            counterparty_id,
+            counterparty_legal_name,
+            counterparty_legal_address_line_1,
+            counterparty_legal_address_line_2,
+            counterparty_legal_district,
+            counterparty_legal_city,
+            counterparty_legal_postal_code,
+            counterparty_legal_country,
+            counterparty_legal_phone_number    
     ) 
     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s);'''
+    conn.run('DELETE FROM dim_counterparty;')
     cursor.executemany(sql, data)
     conn.commit()
     cursor.close()
-    conn.close()
 
 def insert_dim_currency_to_dw(conn, data):
     cursor = conn.cursor()
@@ -369,10 +377,10 @@ def insert_dim_currency_to_dw(conn, data):
             currency_code,
             currency_name)
             VALUES (%s, %s, %s);'''
+    conn.run('DELETE FROM dim_currency;')
     cursor.executemany(sql, data)
     conn.commit()
     cursor.close()
-    conn.close()
 
 def insert_dim_date_to_dw(conn,data):
     cursor = conn.cursor()
@@ -386,10 +394,10 @@ def insert_dim_date_to_dw(conn,data):
         month_name, 
         quarter) 
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s);'''
+    conn.run('DELETE FROM dim_date;')
     cursor.executemany(sql, data)
     conn.commit()
     cursor.close()
-    conn.close()
 
 def insert_dim_design_to_dw(conn,data):
     cursor = conn.cursor()
@@ -399,10 +407,10 @@ def insert_dim_design_to_dw(conn,data):
             file_location, 
             file_name)  
             VALUES (%s, %s, %s, %s);'''
+    conn.run('DELETE FROM dim_design;')
     cursor.executemany(sql, data)
     conn.commit()
-    cursor.close()
-    conn.close()   
+    cursor.close()   
 
 def insert_dim_location_to_dw(conn, data):
     cursor = conn.cursor()
@@ -416,21 +424,21 @@ def insert_dim_location_to_dw(conn, data):
             country,
             phone)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s);'''
+    conn.run('DELETE FROM dim_location;')
     cursor.executemany(sql, data)
     conn.commit()
     cursor.close()
-    conn.close()
 
 def insert_dim_payment_to_dw(conn, data):
     cursor = conn.cursor()
-    sql = '''INSERT INTO dim_payment (
+    sql = '''INSERT INTO dim_payment_type (
             payment_type_id,
-            payment_type_namee)
+            payment_type_name)
             VALUES (%s, %s);'''
+    conn.run('DELETE FROM dim_payment_type;')
     cursor.executemany(sql, data)
     conn.commit()
-    cursor.close()
-    conn.close()    
+    cursor.close()    
 
 def insert_dim_staff_to_dw(conn, data):
     cursor = conn.cursor()
@@ -442,10 +450,10 @@ def insert_dim_staff_to_dw(conn, data):
             location,
             email_address)
             VALUES (%s, %s, %s, %s, %s, %s);'''
+    conn.run('DELETE FROM dim_staff;')
     cursor.executemany(sql, data)
     conn.commit()
     cursor.close()
-    conn.close()
 
 def insert_dim_transaction_to_dw(conn, data):
     cursor = conn.cursor()
@@ -455,23 +463,21 @@ def insert_dim_transaction_to_dw(conn, data):
             sales_order_id,
             purchase_order_id)
             VALUES (%s, %s, %s, %s);'''
+    conn.run('DELETE FROM dim_transaction;')
     cursor.executemany(sql, data)
     conn.commit()
     cursor.close()
-    conn.close()
 
 def insert_fact_purchase_to_dw(conn, data):
     cursor = conn.cursor()
-    sql = '''INSERT INTO fact_purchase (
-            purchase_record_id,
+    sql = '''INSERT INTO fact_purchase_orders (
             purchase_order_id,
-            created_date DATE,
+            created_date,
             created_time,
             last_updated_date,
             last_updated_time,
             staff_id,
             counterparty_id,
-            dim_counterparty,
             item_code,
             item_quantity,
             item_unit_price,
@@ -479,16 +485,15 @@ def insert_fact_purchase_to_dw(conn, data):
             agreed_delivery_date,
             agreed_payment_date,
             agreed_delivery_location_id)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'''
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'''
+    conn.run('DELETE FROM fact_purchase_orders;')
     cursor.executemany(sql, data)
     conn.commit()
     cursor.close()
-    conn.close()
 
 def insert_fact_sales_order_to_dw(conn, data):
     cursor = conn.cursor()
     sql = '''INSERT INTO fact_sales_order (
-            sales_record_id,
             sales_order_id,
             created_date,
             created_time,
@@ -503,17 +508,16 @@ def insert_fact_sales_order_to_dw(conn, data):
             agreed_payment_date,
             agreed_delivery_date,
             agreed_delivery_location_id)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'''
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'''
+    conn.run('DELETE FROM fact_sales_order;')
     cursor.executemany(sql, data)
     conn.commit()
-    cursor.close()
-    conn.close()    
+    cursor.close()    
     
 
 def insert_fact_payment_order_to_dw(conn, data):
     cursor = conn.cursor()
-    sql = '''INSERT INTO fact_payment_order (
-            payment_record_id,
+    sql = '''INSERT INTO fact_payment (
             payment_id,
             created_date,
             created_time,
@@ -526,11 +530,12 @@ def insert_fact_payment_order_to_dw(conn, data):
             payment_type_id,
             paid,
             payment_date)
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'''
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s);'''
+    conn.run('DELETE FROM fact_payment;')
     cursor.executemany(sql, data)
     conn.commit()
     cursor.close()
-    conn.close() 
-
 
 load(None, None)
+
+# print(connect_to_database().run('SELECT * FROM information_schema.tables'))
