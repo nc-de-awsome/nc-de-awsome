@@ -23,6 +23,7 @@ if [ -f ./deployment_zips/deploy_process_lambda.zip ]; then
 fi
 
 mkdir -p deployment_zips/process_package
+mkdir -p deployment_zips/process_package/other_data
 
 cp ./other_data/currencies.csv ./deployment_zips/process_package/other_data/currencies.csv
 cp ./deploy_processed_lambda/lambda_handler.py ./deployment_zips/process_package/lambda_handler.py
