@@ -24,7 +24,7 @@ def transform(event, context):
         fact_sales_order_df = load_data_frame_from_json('sales_order')
 
         # get/load other data
-        currency_name_df = load_data_frame_from_csv('./other_data/currencies.csv')
+        # currency_name_df = load_data_frame_from_csv('./other_data/currencies.csv')
         # update_forex_rates()
 
         # transform data into fact and dim tables
