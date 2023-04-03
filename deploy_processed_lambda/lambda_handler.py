@@ -1,5 +1,5 @@
 import pandas as pd
-import requests
+# import requests
 import json
 import os
 from datetime import datetime
@@ -53,14 +53,14 @@ def transform(event, context):
         write_data_frame_to_parquet(fact_payment, 'fact_payment')
         
         time_completed_query = get_time_of_query()
-        log_timestamp = create_log_timestamp(time_completed_query)
+        log_timestamp = create_log_timestamp(time_query)
         json_time = json.dumps(log_timestamp, indent=4, default=str)
         write_json_to_bucket(
                 json_time,
                 'nc-de-awsome-processed-zone',
                 f'query_log.json' 
             )
-        print(f'Transformation @{time_completed_query} complete.')
+        print(f'Transformation @{time_query} complete.')
     except Exception as e:
         raise TransformationError(f'{e}')
 
@@ -311,38 +311,38 @@ def generate_fact_sales_order(fact_sales_order_df):
 
 # utilities
 
-def update_forex_rates():
-    '''Gets forex rates data, writes to file, and updates at approx 8am each day'''
-    forex_log_path = './other_data/forex_rates_log.json'
+# def update_forex_rates():
+#     '''Gets forex rates data, writes to file, and updates at approx 8am each day'''
+#     forex_log_path = './other_data/forex_rates_log.json'
     
-    now = datetime.now()
+#     now = datetime.now()
 
-    try:
-        if os.path.exists(forex_log_path):
-            with open(forex_log_path, 'r') as f:
-                forex = json.loads(f.read())
-                last_check = datetime.utcfromtimestamp(forex['last_updated'])
+#     try:
+#         if os.path.exists(forex_log_path):
+#             with open(forex_log_path, 'r') as f:
+#                 forex = json.loads(f.read())
+#                 last_check = datetime.utcfromtimestamp(forex['last_updated'])
 
-                if abs(now.day-last_check.day) == 0 or now.hour < 8 :
-                    print('No need to update forex rates')
-                    return
-    except:
-        print('Could not find/read forex rate log; will get forex rates')
+#                 if abs(now.day-last_check.day) == 0 or now.hour < 8 :
+#                     print('No need to update forex rates')
+#                     return
+#     except:
+#         print('Could not find/read forex rate log; will get forex rates')
     
-    currency_pairs=[
-        'GBPUSD',
-        'EURGBP',
-        'EURUSD',
-        'USDEUR',
-        'USDGBP',
-    ]
+#     currency_pairs=[
+#         'GBPUSD',
+#         'EURGBP',
+#         'EURUSD',
+#         'USDEUR',
+#         'USDGBP',
+#     ]
     
-    rates = []
-    for cp in currency_pairs:
-        response =requests.get(f'https://www.freeforexapi.com/api/live?pairs={cp}')
-        rate = json.loads(response.text)['rates']
-        dict = {cp : rate[cp]['rate'] }
-        rates.append(dict)
+#     rates = []
+#     # for cp in currency_pairs:
+#     #     response =requests.get(f'https://www.freeforexapi.com/api/live?pairs={cp}')
+#     #     rate = json.loads(response.text)['rates']
+#     #     dict = {cp : rate[cp]['rate'] }
+#     #     rates.append(dict)
 
     with open('./other_data/forex_rates.json', 'w') as f:
         f.write(json.dumps(rates, indent=4))
@@ -372,15 +372,17 @@ def write_data_frame_to_parquet(data_frame, file_name):
     return response['ResponseMetadata']['HTTPStatusCode']
 
 def s3_file_reader(table_name, time_stamp):
+    print('time_stamp is', time_stamp)
     response = None
+    client = boto3.client('s3')
     try:
-        client = boto3.client('s3')
+
         response = client.get_object(
             Bucket= 'nc-de-awsome-ingestion-zone',
             Key= f'totesys/{time_stamp}/{table_name}.json'
         )
     except Exception:
-        raise ReadError('Unable to read JSON from s3 bucket')
+        raise ReadError('Unable to read JSON from s3 bucket (s3_file_reader)')
     return response['Body'].read().decode()
 
 def fetch_log_timestamp(key='query_log.json'):
@@ -390,7 +392,7 @@ def fetch_log_timestamp(key='query_log.json'):
         time_query = client.get_object(Bucket= 'nc-de-awsome-ingestion-zone', Key=key)
         time_query_dict = json.loads(time_query['Body'].read().decode())
     except Exception:
-        raise ReadError('Unable to read JSON from s3 bucket')
+        raise ReadError('Unable to read JSON from s3 bucket (fetch_log_timestamp')
     return time_query_dict['last_successful_query']
 
 def get_time_of_query():

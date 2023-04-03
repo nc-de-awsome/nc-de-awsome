@@ -45,4 +45,3 @@ data "aws_secretsmanager_secret" "dw_host" {
 data "aws_secretsmanager_secret" "dw_port" {
   name = "DW_PORT"
 }
-
