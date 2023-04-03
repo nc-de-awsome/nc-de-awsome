@@ -48,12 +48,8 @@ def transform(event, context):
         fact_purchase_order = generate_fact_purchase_order(purchase_order_df)
         print('10')
         fact_payment = generate_fact_payment(payment_df)
-<<<<<<< HEAD:deploy_processed_lambda/main.py
-        fact_sales_order = generate_fact_sales_order(fact_sales_order_df)
-=======
         print('11')
         fact_sales_order = generate_fact_sales_order(sales_order_df)
->>>>>>> main:deploy_processed_lambda/lambda_handler.py
 
         # writeout fact/dim tables to parquet to load bucket
         print('12')
@@ -76,13 +72,9 @@ def transform(event, context):
         write_data_frame_to_parquet(fact_purchase_order, 'fact_purchase_order')
         print('21')
         write_data_frame_to_parquet(fact_payment, 'fact_payment')
-<<<<<<< HEAD:deploy_processed_lambda/main.py
-        write_data_frame_to_parquet(fact_sales_order, 'fact_sales_order')
-=======
         print('22')
         write_data_frame_to_parquet(fact_sales_order, 'fact_sales_order')
         print('23')
->>>>>>> main:deploy_processed_lambda/lambda_handler.py
         
         print('write df to parquet complete')
         time_query = get_time_of_query()
