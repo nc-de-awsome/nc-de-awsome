@@ -10,27 +10,27 @@ A second Python application (hereafter named process lambda) uses the ingested t
 A final third Python application (hereafter named load lambda) loads the processed data into a prepared data warehouse. It is automatically trigged when the process lambda creates a file on completion named query_log.json in the processed zone bucket. Progress is logged to CloudWatch. Email alerts are triggered in the event of errors.
 
 ## Platform Infrastructure
-The data platform has two s3 buckets: an ingestion zone bucket; and a processed zone bucket.
+The data platform has two S3 buckets: an ingestion zone bucket; and a processed zone bucket.
 
 The following AWS sources have permission to access each Lambda function as follows:
-    - EventBridge rule (named every_ten_minutes) - allowed to invoke ingest lambda
-    - S3 ingestion zone bucket - allowed to invoke process lambda 
-    - S3 processed zone bucket - allowed to invoke load lambda
+* EventBridge rule (named every_ten_minutes) - allowed to invoke ingest lambda
+* S3 ingestion zone bucket - allowed to invoke process lambda 
+* S3 processed zone bucket - allowed to invoke load lambda
 
 The ingest lambda has permission to:
-    - create CloudWatch logs (aws/lambda/ingestion-lambda)
-    - create S3 objects in the ingestion zone bucket
-    - read specific secrets in Secrets Manager
+* create CloudWatch logs (aws/lambda/ingestion-lambda)
+* create S3 objects in the ingestion zone bucket
+* read specific secrets in Secrets Manager
 
 The process lambda has permission to:
-    - create CloudWatch logs (aws/lambda/process-lambda)
-    - read S3 objects in the ingestion zone bucket
-    - create S3 objects in the processed zone bucket
+* create CloudWatch logs (aws/lambda/process-lambda)
+* read S3 objects in the ingestion zone bucket
+* create S3 objects in the processed zone bucket
 
 The load lambda has permission to:
-    - create CloudWatch logs (aws/lambda/load-lambda)
-    - read S3 objects in the processed zone bucket
-    - read specific secrests in Secrets Manager
+* create CloudWatch logs (aws/lambda/load-lambda)
+* read S3 objects in the processed zone bucket
+* read specific secrests in Secrets Manager
 
 ## Instructions for setup
 
