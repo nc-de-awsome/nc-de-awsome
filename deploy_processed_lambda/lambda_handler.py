@@ -393,11 +393,13 @@ def fetch_log_timestamp(key='query_log.json'):
         time_query_dict = json.loads(time_query['Body'].read().decode())
     except Exception:
         raise ReadError('Unable to read JSON from s3 bucket (fetch_log_timestamp')
+    print('I am in fetch_log_timestamp')
     return time_query_dict['last_successful_query']
 
 def get_time_of_query():
     tz = pytz.timezone('Europe/London')
     now = datetime.now(tz).strftime('%y-%m-%d %H:%M:%S')
+    print('I am in get_time_of_query')
     return now
 
 def create_log_timestamp(time_of_query):
@@ -405,6 +407,7 @@ def create_log_timestamp(time_of_query):
         "last_successful_query" : time_of_query
         # "Last query" : time_of_query,
     }
+    print('I am in create_log_timestamp')
     return obj
 
 def write_json_to_bucket(json, bucket_name, key):
