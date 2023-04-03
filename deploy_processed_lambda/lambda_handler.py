@@ -15,13 +15,12 @@ def transform(event, context):
         design_df = load_data_frame_from_json('design')
         address_df = load_data_frame_from_json('address')
         counterparty_df = load_data_frame_from_json('counterparty')
-        sales_order_df = load_data_frame_from_json('sales_order')
         currency_df = load_data_frame_from_json('currency')
         payment_df = load_data_frame_from_json('payment')
+        transaction_df = load_data_frame_from_json('transaction') 
         payment_type_df = load_data_frame_from_json('payment_type')
-        transaction_df = load_data_frame_from_json('transaction')
+        sales_order_df = load_data_frame_from_json('sales_order')
         purchase_order_df = load_data_frame_from_json('purchase_order')
-        fact_sales_order_df = load_data_frame_from_json('sales_order')
 
         # get/load other data
         currency_name_df = load_data_frame_from_csv('./other_data/currencies.csv')
@@ -36,9 +35,10 @@ def transform(event, context):
         dim_currency = generate_dim_currency(currency_df, currency_name_df)
         dim_payment_type = generate_dim_payment_type(payment_type_df)
         dim_transaction = generate_dim_transaction(transaction_df)
+
         fact_purchase_order = generate_fact_purchase_order(purchase_order_df)
         fact_payment = generate_fact_payment(payment_df)
-        fact_sales_order_df = generate_fact_sales_order(fact_sales_order_df)
+        fact_sales_order = generate_fact_sales_order(sales_order_df)
 
         # writeout fact/dim tables to parquet to load bucket
         write_data_frame_to_parquet(dim_staff, 'dim_staff')
@@ -51,6 +51,7 @@ def transform(event, context):
         write_data_frame_to_parquet(dim_transaction, 'dim_transaction')
         write_data_frame_to_parquet(fact_purchase_order, 'fact_purchase_order')
         write_data_frame_to_parquet(fact_payment, 'fact_payment')
+        write_data_frame_to_parquet(fact_sales_order, 'fact_sales_order')
         
         time_query = get_time_of_query()
         log_timestamp = create_log_timestamp(time_query)
@@ -278,19 +279,19 @@ def generate_fact_payment(payment_df):
     ]
     )
 
-def generate_fact_sales_order(fact_sales_order_df):
-    fact_sales_order_df['sales_record_id'] = fact_sales_order_df.index + 1
-    fact_sales_order_df['created_date'] = fact_sales_order_df['created_at'].dt.date
-    fact_sales_order_df['created_time'] = fact_sales_order_df['created_at'].dt.time
-    fact_sales_order_df['last_updated'] = pd.to_datetime(fact_sales_order_df['last_updated'])
-    fact_sales_order_df['last_updated_date'] = fact_sales_order_df['last_updated'].dt.date
-    fact_sales_order_df['last_updated_time'] = fact_sales_order_df['last_updated'].dt.time
-    fact_sales_order_df.drop('created_at', axis=1, inplace=True)
-    fact_sales_order_df.drop('last_updated', axis=1, inplace=True)
-    fact_sales_order_df['agreed_delivery_date'] = pd.to_datetime(fact_sales_order_df['agreed_delivery_date'], format='%Y-%m-%d').dt.date
-    fact_sales_order_df['agreed_payment_date'] = pd.to_datetime(fact_sales_order_df['agreed_payment_date'], format='%Y-%m-%d').dt.date
+def generate_fact_sales_order(sales_order_df):
+    sales_order_df['sales_record_id'] = sales_order_df.index + 1
+    sales_order_df['created_date'] = sales_order_df['created_at'].dt.date
+    sales_order_df['created_time'] = sales_order_df['created_at'].dt.time
+    sales_order_df['last_updated'] = pd.to_datetime(sales_order_df['last_updated'])
+    sales_order_df['last_updated_date'] = sales_order_df['last_updated'].dt.date
+    sales_order_df['last_updated_time'] = sales_order_df['last_updated'].dt.time
+    sales_order_df.drop('created_at', axis=1, inplace=True)
+    sales_order_df.drop('last_updated', axis=1, inplace=True)
+    sales_order_df['agreed_delivery_date'] = pd.to_datetime(sales_order_df['agreed_delivery_date'], format='%Y-%m-%d').dt.date
+    sales_order_df['agreed_payment_date'] = pd.to_datetime(sales_order_df['agreed_payment_date'], format='%Y-%m-%d').dt.date
 
-    return fact_sales_order_df.reindex(columns=[
+    return sales_order_df.reindex(columns=[
         'sales_record_id',
         'sales_order_id',
         'created_date',
