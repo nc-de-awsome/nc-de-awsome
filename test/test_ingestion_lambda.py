@@ -3,7 +3,7 @@ from deploy_ingestion_lambda.lambda_handler import _get_table_column_names, _get
 import datetime
 import pytest
 from moto.core import patch_client
-from moto import mock_s3
+from moto import mock_s3, mock_secretsmanager
 import os
 import json
 from unittest.mock import patch
@@ -30,7 +30,7 @@ def aws_credentials():
     os.environ['AWS_SECRET_ACCESS_KEY'] = 'test'
     os.environ['AWS_SECURITY_TOKEN'] = 'test'
     os.environ['AWS_SESSION_TOKEN'] = 'test'
-    os.environ['AWS_DEFAULT_REGION'] = 'eu-west-2'
+    os.environ['AWS_DEFAULT_REGION'] = 'us-east-1'
 
 def test_get_all_table_names_in_totesys_db():
     table_names = get_all_table_names(conn)
@@ -121,3 +121,34 @@ def test_ingest_failure_raises_IngestionError():
     with patch('deploy_ingestion_lambda.lambda_handler.get_all_table_names', return_value=5):
         with pytest.raises(IngestionError):
             ingest(None, None)
+
+def test_get_table_values_raises_SelectQueryError():
+    with pytest.raises(SelectQueryError):
+        _get_table_values(None, 'staff')
+
+# @pytest.fixture(scope='function')
+# def secretsmanager(aws_credentials):
+#     with mock_secretsmanager():
+#         yield boto3.client('secretsmanager', region_name='us-east-1')
+
+# @mock_secretsmanager
+# def test_get_secret_from_secretsmanager():
+#     client = boto3.client('secretsmanager', region_name='us-east-1')
+    
+#     key = 'test_key'
+#     client.create_secret( Name = key, SecretString = 'secret_value')
+
+#     def mock_get_secret(key):
+#         secret = client.get_secret_value(SecretId = key)
+#         return secret['SecretString']
+    
+#     with patch('deploy_ingestion_lambda.lambda_handler.get_secret', return_value = mock_get_secret(key)):
+#         assert get_secret('test_key') == 'secret_value'
+
+# @mock_secretsmanager
+# def test_get_secret_raises_error_if_secret_not_found():
+#     with pytest.raises(DatabaseConnectionError):
+#         client = boto3.client('secretsmanager', region_name='us-east-1')
+#         get_secret('secret_not_here')
+
+

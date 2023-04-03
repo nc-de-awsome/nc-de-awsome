@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import pandas as pd
 from datetime import datetime
 import boto3
@@ -564,3 +565,7 @@ def _get_table_column_names(conn, table_name):
         raise DatabaseConnectionError(f'Unable to get columns from {table_name}')
 
 # print(_get_table_column_names(connect_to_database(), 'fact_sales_order'))
+=======
+def load(event, context):
+    print("This will be the load lambda function")
+>>>>>>> main

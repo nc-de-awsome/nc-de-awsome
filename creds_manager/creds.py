@@ -4,11 +4,13 @@ import boto3
 def create_secret(secret_key, secret_value):
     sm = boto3.client('secretsmanager')
 
-    response = sm.list_secrets()
-    secrets =[ s['Name'] for s in response['SecretList'] ]
+    # response = sm.list_secrets()
+    # secrets =[ s['Name'] for s in response['SecretList'] ]
 
-    if secret_key not in secrets:
+    try:
         sm.create_secret(Name=secret_key, SecretString=secret_value)
+    except:
+        sm.update_secret(SecretId=secret_key, SecretString=secret_value)
         
 totesys_password = os.environ['TOTESYS_PASSWORD']
 totesys_username = os.environ['TOTESYS_USERNAME']
@@ -30,8 +32,9 @@ create_secret('TOTESYS_HOST', totesys_host)
 create_secret('TOTESYS_PORT', totesys_port)
 create_secret('TOTESYS_REGION', totesys_region)
 
-create_secret('DW_PASSWORD', dw_password)
 create_secret('DW_USERNAME', dw_username)
+create_secret('DW_PASSWORD', dw_password)
 create_secret('DW_DATABASE_NAME', dw_database_name)
 create_secret('DW_HOST', dw_host)
 create_secret('DW_PORT', dw_port)
+
