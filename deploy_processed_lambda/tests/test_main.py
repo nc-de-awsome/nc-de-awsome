@@ -7,7 +7,6 @@ import os
 from unittest.mock import patch
 import pandas as pd
 
-
 @pytest.fixture(scope='function')
 def aws_credentials():
     """Mocked AWS Credentials for moto."""
