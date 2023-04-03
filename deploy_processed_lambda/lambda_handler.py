@@ -53,8 +53,11 @@ def transform(event, context):
         write_data_frame_to_parquet(fact_payment, 'fact_payment')
         write_data_frame_to_parquet(fact_sales_order, 'fact_sales_order')
         
+        print('line 56')
         time_query = get_time_of_query()
+        print('passed get_time_query')
         log_timestamp = create_log_timestamp(time_query)
+        print('log stamp created')
         json_time = json.dumps(log_timestamp, indent=4, default=str)
         write_json_to_bucket(
                 json_time,
