@@ -61,9 +61,10 @@ def load(event, context):
     # insert_dim_staff_to_dw(conn, staff_list)
     # insert_dim_transaction_to_dw(conn, transaction_list)
 
-    insert_fact_purchase_to_dw(conn, fact_purchase_list)
-    insert_fact_payment_order_to_dw(conn, fact_payment_list)
     insert_fact_sales_order_to_dw(conn, fact_sales_list)
+    insert_fact_payment_order_to_dw(conn, fact_payment_list)
+    insert_fact_purchase_to_dw(conn, fact_purchase_list)
+
     conn.close()
     end_time = timeit.timeit()
     print(end_time - start_time, '<--- time elapsed')
@@ -502,7 +503,7 @@ def insert_fact_sales_order_to_dw(conn, data):
             sales_staff_id,
             counterparty_id,
             units_sold,
-            unit_price,
+            "unit price",
             currency_id,
             design_id,
             agreed_payment_date,
@@ -539,3 +540,27 @@ def insert_fact_payment_order_to_dw(conn, data):
 load(None, None)
 
 # print(connect_to_database().run('SELECT * FROM information_schema.tables'))
+
+def _get_table_column_names(conn, table_name):
+    '''Returns a list of column_name strings in table_name
+
+        parameters:
+            conn: pg8000.native.Connection
+            table_name: string
+        
+        returns:
+            list of strings 
+    '''
+    try:
+        columns = conn.run(f"""
+            SELECT column_name FROM information_schema.columns
+            WHERE table_name = '{table_name}'
+            AND table_schema='project_team_2';
+            """
+        )
+        column_names = [column_name[0] for column_name in columns]
+        return column_names
+    except:
+        raise DatabaseConnectionError(f'Unable to get columns from {table_name}')
+
+# print(_get_table_column_names(connect_to_database(), 'fact_sales_order'))
