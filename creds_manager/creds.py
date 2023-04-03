@@ -8,7 +8,7 @@ def create_secret(secret_key, secret_value):
     secrets =[ s['Name'] for s in response['SecretList'] ]
 
     if secret_key not in secrets:
-        sm.create_secret(SecretId=secret_key, SecretString=secret_value)
+        sm.create_secret(Name=secret_key, SecretString=secret_value)
         
 totesys_password = os.environ['TOTESYS_PASSWORD']
 totesys_username = os.environ['TOTESYS_USERNAME']
