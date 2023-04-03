@@ -52,7 +52,7 @@ def transform(event, context):
         write_data_frame_to_parquet(fact_purchase_order, 'fact_purchase_order')
         write_data_frame_to_parquet(fact_payment, 'fact_payment')
         
-        time_completed_query = get_time_of_query()
+        time_query = get_time_of_query()
         log_timestamp = create_log_timestamp(time_query)
         json_time = json.dumps(log_timestamp, indent=4, default=str)
         write_json_to_bucket(
@@ -372,7 +372,6 @@ def write_data_frame_to_parquet(data_frame, file_name):
     return response['ResponseMetadata']['HTTPStatusCode']
 
 def s3_file_reader(table_name, time_stamp):
-    print('time_stamp is', time_stamp)
     response = None
     client = boto3.client('s3')
     try:
