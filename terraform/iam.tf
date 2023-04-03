@@ -180,7 +180,11 @@ data "aws_iam_policy_document" "sm_document_load" {
   statement {
     actions = ["secretsmanager:GetSecretValue"]
     resources = [
-      "*"
+      "${data.aws_secretsmanager_secret.dw_password.arn}",
+      "${data.aws_secretsmanager_secret.dw_username.arn}",
+      "${data.aws_secretsmanager_secret.dw_database_name.arn}",
+      "${data.aws_secretsmanager_secret.dw_host.arn}",
+      "${data.aws_secretsmanager_secret.dw_port.arn}"
     ]
   }
 }
