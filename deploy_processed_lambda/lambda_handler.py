@@ -221,8 +221,8 @@ def generate_dim_transaction(transaction_df):
 
 def generate_fact_purchase_order(purchase_order_df):
     
-    purchase_order_df['created_at'] = pd.to_datetime(purchase_order_df['created_at']).map(lambda x: x.isoformat(timespec='milliseconds'))
-    purchase_order_df['last_updated'] = pd.to_datetime(purchase_order_df['last_updated']).map(lambda x: x.isoformat(timespec='milliseconds'))
+    purchase_order_df['created_at'] = pd.to_datetime(pd.to_datetime(purchase_order_df['created_at']).map(lambda x: x.isoformat(timespec='milliseconds')))
+    purchase_order_df['last_updated'] = pd.to_datetime(pd.to_datetime(purchase_order_df['last_updated']).map(lambda x: x.isoformat(timespec='milliseconds')))
     purchase_order_df['created_date'] = purchase_order_df['created_at'].dt.date
     purchase_order_df['created_time'] = purchase_order_df['created_at'].dt.time
     purchase_order_df.drop('created_at', axis=1, inplace=True)
@@ -296,6 +296,7 @@ def generate_fact_sales_order(sales_order_df):
     sales_order_df.drop('last_updated', axis=1, inplace=True)
     sales_order_df['agreed_delivery_date'] = pd.to_datetime(sales_order_df['agreed_delivery_date'], format='%Y-%m-%d').dt.date
     sales_order_df['agreed_payment_date'] = pd.to_datetime(sales_order_df['agreed_payment_date'], format='%Y-%m-%d').dt.date
+
 
     return sales_order_df.reindex(columns=[
         'sales_record_id',
