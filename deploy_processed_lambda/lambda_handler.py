@@ -460,5 +460,3 @@ class WriteError(AwsomeError):
 
 class ReadError(AwsomeError):
     pass
-
-transform(None, None)
