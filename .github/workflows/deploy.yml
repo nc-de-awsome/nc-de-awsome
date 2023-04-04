@@ -23,15 +23,15 @@ jobs:
         run: make requirements
       - name: Install Dev Dependencies
         run: make dev-setup
-      # - name: Run All Checks
-      #   env: 
-      #       TOTESYS_USERNAME: ${{ secrets.TOTESYS_USERNAME }}
-      #       TOTESYS_DATABASE_NAME: ${{ secrets.TOTESYS_DATABASE_NAME }}
-      #       TOTESYS_HOST: ${{ secrets.TOTESYS_HOST }}
-      #       TOTESYS_PASSWORD: ${{ secrets.TOTESYS_PASSWORD }}
-      #       TOTESYS_PORT: ${{ secrets.TOTESYS_PORT }}
-      #       TOTESYS_REGION: ${{ secrets.TOTESYS_REGION }}
-      #   run: make run-checks
+      - name: Run All Checks
+        env: 
+            TOTESYS_USERNAME: ${{ secrets.TOTESYS_USERNAME }}
+            TOTESYS_DATABASE_NAME: ${{ secrets.TOTESYS_DATABASE_NAME }}
+            TOTESYS_HOST: ${{ secrets.TOTESYS_HOST }}
+            TOTESYS_PASSWORD: ${{ secrets.TOTESYS_PASSWORD }}
+            TOTESYS_PORT: ${{ secrets.TOTESYS_PORT }}
+            TOTESYS_REGION: ${{ secrets.TOTESYS_REGION }}
+        run: make run-checks
 
   deployment:
     name: deploy-dev
