@@ -221,13 +221,19 @@ def generate_dim_transaction(transaction_df):
 
 def generate_fact_purchase_order(purchase_order_df):
     
-
-    def make_iso_format(string):
+    def make_iso_format(timestamp):
+        print(f'IN: {timestamp}: {type(timestamp)}')
+        string = str(timestamp)
         if not '.' in string:
-            string += '.000000'
-            return string
+            string += '.000001'
+
+        new_timestamp = pd.Timestamp(string)
+        print(f'OUT: {new_timestamp}: {type(new_timestamp)}')
+        return new_timestamp
 
     purchase_order_df['created_at'] = pd.to_datetime(purchase_order_df['created_at'].map(lambda x: make_iso_format(x)))
+    print(purchase_order_df['created_at'])
+
     purchase_order_df['last_updated'] = pd.to_datetime(purchase_order_df['last_updated'].map(lambda x: make_iso_format(x)))
     purchase_order_df['created_date'] = purchase_order_df['created_at'].dt.date
     purchase_order_df['created_time'] = purchase_order_df['created_at'].dt.time
