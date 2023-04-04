@@ -45,7 +45,7 @@ def transform(event, context):
         dim_transaction = generate_dim_transaction(transaction_df)
         print('9')
 
-        fact_purchase_order = generate_fact_purchase_order(purchase_order_df)
+        # fact_purchase_order = generate_fact_purchase_order(purchase_order_df)
         print('10')
         fact_payment = generate_fact_payment(payment_df)
         print('11')
@@ -69,7 +69,7 @@ def transform(event, context):
         print('19')
         write_data_frame_to_parquet(dim_transaction, 'dim_transaction')
         print('20')
-        write_data_frame_to_parquet(fact_purchase_order, 'fact_purchase_order')
+        # write_data_frame_to_parquet(fact_purchase_order, 'fact_purchase_order')
         print('21')
         write_data_frame_to_parquet(fact_payment, 'fact_payment')
         print('22')
