@@ -235,7 +235,7 @@ def test_generate_dim_payment_type():
 
 def test_generate_dim_date():
     sales_df = load_data_frame_from_local_json('sales_order')
-    actual = generate_dim_date(sales_df)
+    actual = generate_dim_date()
     
     expected = pd.DataFrame(
         [
