@@ -38,7 +38,7 @@ def transform(event, context):
     print('4')
     dim_counterparty = generate_dim_counterparty(counterparty_df, address_df)
     print('5')
-    dim_date = generate_dim_date(sales_order_df)
+    dim_date = generate_dim_date2()
     print('6')
     dim_currency = generate_dim_currency(currency_df, currency_name_df)
     print('7')
@@ -248,6 +248,19 @@ def generate_dim_payment_type(payment_type_df):
             ]
     ]
 
+def generate_dim_date2():
+    df = pd.DataFrame(pd.date_range('1/1/2010','12/31/2030'), columns=['date_id'])
+    df["date"] = df['date_id'].dt.date
+    df["year"] = df['date_id'].dt.year
+    df["month"] = df['date_id'].dt.month
+    df["day"] = df['date_id'].dt.day
+    df["day_of_week"] = df['date_id'].dt.weekday
+    df["day_name"] = df['date_id'].dt.strftime("%A")
+    df["month_name"] = df['date_id'].dt.strftime("%B")
+    df["quater"] = df["date_id"] = df.date_id.dt.quarter
+    df.drop("date_id", axis=1, inplace=True)
+
+    return df
 
 def generate_dim_date(sales_order_df):
     '''Returns date dim table.
