@@ -46,10 +46,9 @@ fi
 mkdir -p deployment_zips/load_package
 
 cp ./deploy_load_lambda/lambda_handler.py ./deployment_zips/load_package/lambda_handler.py
-# pip install pandas --no-deps --target deployment_zips/process_package/
-# pip install numpy --no-deps --target deployment_zips/process_package/
-# pip install pyarrow --no-deps --target deployment_zips/process_package/
-# pip install pytz --target deployment_zips/process_package/
+pip install pandas --target deployment_zips/process_package/
+pip install pytz --target deployment_zips/process_package/
+pip install pg8000 --target deployment_zips/ingest_package/
 
 cd deployment_zips/load_package/
 zip -r ../deploy_load_lambda.zip .
