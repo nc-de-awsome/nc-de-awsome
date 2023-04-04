@@ -322,21 +322,30 @@ def get_region():
 
 def load_data_frame_from_parquet_file(table_name):
     df = None
+    print(f'attempting to load {table_name} df...')
     try:
+        print('creating buffer...')
         buffer = io.BytesIO()
+        print('buffer created.')
+        print('accessing s3 client...')
         client = boto3.resource('s3')
+        print('s3 client accessed')
+        bucket = 'nc-de-awsome-processed-zone'
+        key = f'transformation_parquet/{table_name}.parquet'
+        print(f'bucket: {bucket} // key: transformation_parquet/{table_name}.parquet')
         response = client.Object(
-            'nc-de-awsome-processed-zone',
-            f'transformation_parquet/{table_name}.parquet'
+            bucket,
+            key
         )
+        print('response: ',response)
         response.download_fileobj(buffer)
+        print('filobj downloaded: ', buffer)
         df = pd.read_parquet(buffer)
+        print('df read from parquet')
     except Exception:
         raise ReadError('Unable to read Parquet from s3 bucket')
     return df
         
-    
-
 def dataframe_to_list_of_row_values(data_frame):
     return data_frame.values.tolist()
 
