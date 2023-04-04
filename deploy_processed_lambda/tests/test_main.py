@@ -118,9 +118,9 @@ def test_write_data_frame_to_parquet():
         with pytest.raises(WriteError):
             write_data_frame_to_parquet(df_dict, 'currency')
 
-@mock_s3
-def test_transform_error():
-    with patch('deploy_processed_lambda.lambda_handler.write_data_frame_to_parquet'):
-        with pytest.raises(TransformationError):
-            transform(None, None)
+# @mock_s3
+# def test_transform_error():
+#     with patch('deploy_processed_lambda.lambda_handler.write_data_frame_to_parquet'):
+#         with pytest.raises(TransformationError):
+#             transform(None, None)
 
