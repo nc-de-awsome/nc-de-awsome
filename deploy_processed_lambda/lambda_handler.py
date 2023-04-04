@@ -219,17 +219,15 @@ def generate_dim_transaction(transaction_df):
 
 # fact tables
 
-def generate_fact_purchase_order(purchase_order_df):
-    
-    def make_iso_format(timestamp):
-        print(f'IN: {timestamp}: {type(timestamp)}')
-        string = str(timestamp)
-        if not '.' in string:
-            string += '.000001'
+def make_iso_format(timestamp):
+        timestamp_str = str(timestamp)
+        if not '.' in timestamp_str:
+            timestamp_str += '.000001'
 
-        new_timestamp = pd.Timestamp(string)
-        print(f'OUT: {new_timestamp}: {type(new_timestamp)}')
+        new_timestamp = pd.Timestamp(timestamp_str)
         return new_timestamp
+
+def generate_fact_purchase_order(purchase_order_df):
 
     purchase_order_df['created_at'] = pd.to_datetime(purchase_order_df['created_at'].map(lambda x: make_iso_format(x)))
     print(purchase_order_df['created_at'])
@@ -301,7 +299,7 @@ def generate_fact_sales_order(sales_order_df):
     sales_order_df['sales_record_id'] = sales_order_df.index + 1
     sales_order_df['created_date'] = sales_order_df['created_at'].dt.date
     sales_order_df['created_time'] = sales_order_df['created_at'].dt.time
-    sales_order_df['last_updated'] = pd.to_datetime(sales_order_df['last_updated'])
+    sales_order_df['last_updated'] = pd.to_datetime(sales_order_df['last_updated'].map(lambda x: make_iso_format(x)))
     sales_order_df['last_updated_date'] = sales_order_df['last_updated'].dt.date
     sales_order_df['last_updated_time'] = sales_order_df['last_updated'].dt.time
     sales_order_df.drop('created_at', axis=1, inplace=True)
