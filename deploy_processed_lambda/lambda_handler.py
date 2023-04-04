@@ -253,8 +253,8 @@ def generate_fact_purchase_order(purchase_order_df):
     purchase_order_df.drop('last_updated', axis=1, inplace=True)
     purchase_order_df['purchase_record_id'] = purchase_order_df.index + 1
     
-    purchase_order_df['agreed_delivery_date'] = pd.to_datetime(purchase_order_df['agreed_delivery_date'], format='%Y-%m-%d').dt.date
-    purchase_order_df['agreed_payment_date'] = pd.to_datetime(purchase_order_df['agreed_payment_date'], format='%Y-%m-%d').dt.date
+    purchase_order_df['agreed_delivery_date'] = pd.to_datetime(purchase_order_df['agreed_delivery_date']).dt.date
+    purchase_order_df['agreed_payment_date'] = pd.to_datetime(purchase_order_df['agreed_payment_date']).dt.date
     return purchase_order_df.reindex(columns=[
             "purchase_record_id",
             "purchase_order_id",
@@ -284,7 +284,7 @@ def generate_fact_payment(payment_df):
     payment_df['last_updated_date'] = payment_df['last_updated'].dt.date
     payment_df['last_updated_time'] = payment_df['last_updated'].dt.time
     payment_df.drop('last_updated', axis=1, inplace=True)
-    payment_df['payment_date'] = pd.to_datetime(payment_df['payment_date'], format='%Y-%m-%d').dt.date
+    payment_df['payment_date'] = pd.to_datetime(payment_df['payment_date']).dt.date
 
     payment_df.drop(['counterparty_ac_number', 'company_ac_number'], axis=1, inplace=True)
 
@@ -314,8 +314,10 @@ def generate_fact_sales_order(sales_order_df):
     sales_order_df['last_updated_time'] = sales_order_df['last_updated'].dt.time
     sales_order_df.drop('created_at', axis=1, inplace=True)
     sales_order_df.drop('last_updated', axis=1, inplace=True)
-    sales_order_df['agreed_delivery_date'] = pd.to_datetime(sales_order_df['agreed_delivery_date'], format='%Y-%m-%d').dt.date
-    sales_order_df['agreed_payment_date'] = pd.to_datetime(sales_order_df['agreed_payment_date'], format='%Y-%m-%d').dt.date
+    sales_order_df['agreed_delivery_date'] = pd.to_datetime(sales_order_df['agreed_delivery_date'], format='mixed').dt.date
+    sales_order_df['agreed_payment_date'] = pd.to_datetime(sales_order_df['agreed_payment_date'], format='mixed').dt.date
+    # sales_order_df['agreed_delivery_date'] = pd.to_datetime(sales_order_df['agreed_delivery_date'], format='%Y-%m-%d').dt.date
+    # sales_order_df['agreed_payment_date'] = pd.to_datetime(sales_order_df['agreed_payment_date'], format='%Y-%m-%d').dt.date
 
     return sales_order_df.reindex(columns=[
         'sales_record_id',
