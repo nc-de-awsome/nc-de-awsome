@@ -314,8 +314,8 @@ def generate_fact_sales_order(sales_order_df):
     sales_order_df['last_updated_time'] = sales_order_df['last_updated'].dt.time
     sales_order_df.drop('created_at', axis=1, inplace=True)
     sales_order_df.drop('last_updated', axis=1, inplace=True)
-    sales_order_df['agreed_delivery_date'] = pd.to_datetime(sales_order_df['agreed_delivery_date'], format='mixed').dt.date
-    sales_order_df['agreed_payment_date'] = pd.to_datetime(sales_order_df['agreed_payment_date'], format='mixed').dt.date
+    sales_order_df['agreed_delivery_date'] = pd.to_datetime(sales_order_df['agreed_delivery_date']).dt.date
+    sales_order_df['agreed_payment_date'] = pd.to_datetime(sales_order_df['agreed_payment_date']).dt.date
     # sales_order_df['agreed_delivery_date'] = pd.to_datetime(sales_order_df['agreed_delivery_date'], format='%Y-%m-%d').dt.date
     # sales_order_df['agreed_payment_date'] = pd.to_datetime(sales_order_df['agreed_payment_date'], format='%Y-%m-%d').dt.date
 
