@@ -220,10 +220,13 @@ def generate_dim_transaction(transaction_df):
 # fact tables
 
 def generate_fact_purchase_order(purchase_order_df):
-    purchase_order_df['created_at'] = pd.to_datetime(pd.to_datetime(purchase_order_df['created_at']).map(lambda x: x.isoformat(timespec='milliseconds'))).dt.date
-    purchase_order_df['last_updated'] = pd.to_datetime(pd.to_datetime(purchase_order_df['last_updated']).map(lambda x: x.isoformat(timespec='milliseconds'))).dt.time
-    purchase_order_df['created_date'] = purchase_order_df['created_at'] #.dt.date
-    purchase_order_df['created_time'] = purchase_order_df['created_at'] #.dt.time
+    
+    .. = pd.to_datetime(df['created_at']).map(lambda x: x.isoformat(timespec='milliseconds'))
+    
+    purchase_order_df['created_at'] = pd.to_datetime(purchase_order_df['created_at']).map(lambda x: x.isoformat(timespec='milliseconds'))
+    purchase_order_df['last_updated'] = pd.to_datetime(purchase_order_df['last_updated']).map(lambda x: x.isoformat(timespec='milliseconds'))
+    purchase_order_df['created_date'] = purchase_order_df['created_at'].dt.date
+    purchase_order_df['created_time'] = purchase_order_df['created_at'].dt.time
     purchase_order_df.drop('created_at', axis=1, inplace=True)
 
     purchase_order_df['last_updated'] = pd.to_datetime(purchase_order_df['last_updated'])
