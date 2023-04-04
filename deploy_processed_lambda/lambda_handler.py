@@ -8,66 +8,62 @@ import io
 import pytz
 
 def transform(event, context):
-    # try:
-        # load all data from transformation bucket
-    staff_df = load_data_frame_from_json('staff')
-    department_df = load_data_frame_from_json('department')
-    design_df = load_data_frame_from_json('design')
-    address_df = load_data_frame_from_json('address')
-    counterparty_df = load_data_frame_from_json('counterparty')
-    currency_df = load_data_frame_from_json('currency')
-    payment_df = load_data_frame_from_json('payment')
-    transaction_df = load_data_frame_from_json('transaction') 
-    payment_type_df = load_data_frame_from_json('payment_type')
-    sales_order_df = load_data_frame_from_json('sales_order')
-    purchase_order_df = load_data_frame_from_json('purchase_order')
+    try:
+        # load dataframes from ingestion bucket json files
+        staff_df = load_data_frame_from_json('staff')
+        department_df = load_data_frame_from_json('department')
+        design_df = load_data_frame_from_json('design')
+        address_df = load_data_frame_from_json('address')
+        counterparty_df = load_data_frame_from_json('counterparty')
+        currency_df = load_data_frame_from_json('currency')
+        payment_df = load_data_frame_from_json('payment')
+        transaction_df = load_data_frame_from_json('transaction') 
+        payment_type_df = load_data_frame_from_json('payment_type')
+        sales_order_df = load_data_frame_from_json('sales_order')
+        purchase_order_df = load_data_frame_from_json('purchase_order')
 
-    # get/load other data
-    currency_name_df = load_data_frame_from_csv('./other_data/currencies.csv')
-    # update_forex_rates()
+        # get/load other data
+        currency_name_df = load_data_frame_from_csv('./other_data/currencies.csv')
+        # update_forex_rates()
 
-    # transform data into fact and dim tables
-    dim_staff = generate_dim_staff(staff_df, department_df)
-    dim_design = generate_dim_design(design_df)
-    dim_location = generate_dim_location(address_df)
-    dim_counterparty = generate_dim_counterparty(counterparty_df, address_df)
-    dim_date = generate_dim_date(sales_order_df)
-    dim_currency = generate_dim_currency(currency_df, currency_name_df)
-    dim_payment_type = generate_dim_payment_type(payment_type_df)
-    dim_transaction = generate_dim_transaction(transaction_df)
+        # transform data into fact and dim tables
+        dim_staff = generate_dim_staff(staff_df, department_df)
+        dim_design = generate_dim_design(design_df)
+        dim_location = generate_dim_location(address_df)
+        dim_counterparty = generate_dim_counterparty(counterparty_df, address_df)
+        dim_date = generate_dim_date(sales_order_df)
+        dim_currency = generate_dim_currency(currency_df, currency_name_df)
+        dim_payment_type = generate_dim_payment_type(payment_type_df)
+        dim_transaction = generate_dim_transaction(transaction_df)
 
-    print('1')
-    fact_purchase_order = generate_fact_purchase_order(purchase_order_df)
-    print('2')
-    fact_payment = generate_fact_payment(payment_df)
-    print('3')
-    fact_sales_order = generate_fact_sales_order(sales_order_df)
-    print('4')
+        fact_purchase_order = generate_fact_purchase_order(purchase_order_df)
+        fact_payment = generate_fact_payment(payment_df)
+        fact_sales_order = generate_fact_sales_order(sales_order_df)
 
-    # writeout fact/dim tables to parquet to load bucket
-    write_data_frame_to_parquet(dim_staff, 'dim_staff')
-    write_data_frame_to_parquet(dim_design, 'dim_design')
-    write_data_frame_to_parquet(dim_location, 'dim_location')
-    write_data_frame_to_parquet(dim_counterparty, 'dim_counterparty')
-    write_data_frame_to_parquet(dim_date, 'dim_date')
-    write_data_frame_to_parquet(dim_currency, 'dim_currency')
-    write_data_frame_to_parquet(dim_payment_type, 'dim_payment_type')
-    write_data_frame_to_parquet(dim_transaction, 'dim_transaction')
-    write_data_frame_to_parquet(fact_purchase_order, 'fact_purchase_order')
-    write_data_frame_to_parquet(fact_payment, 'fact_payment')
-    write_data_frame_to_parquet(fact_sales_order, 'fact_sales_order')
-    
-    time_query = get_time_of_query()
-    log_timestamp = create_log_timestamp(time_query)
-    json_time = json.dumps(log_timestamp, indent=4, default=str)
-    write_json_to_bucket(
-            json_time,
-            'nc-de-awsome-processed-zone',
-            f'query_log.json' 
-        )
-    print(f'Transformation @{time_query} complete.')
-    # except Exception as e:
-        # raise TransformationError(f'{e}')
+        # writeout fact/dim tables to parquet to load bucket
+        write_data_frame_to_parquet(dim_staff, 'dim_staff')
+        write_data_frame_to_parquet(dim_design, 'dim_design')
+        write_data_frame_to_parquet(dim_location, 'dim_location')
+        write_data_frame_to_parquet(dim_counterparty, 'dim_counterparty')
+        write_data_frame_to_parquet(dim_date, 'dim_date')
+        write_data_frame_to_parquet(dim_currency, 'dim_currency')
+        write_data_frame_to_parquet(dim_payment_type, 'dim_payment_type')
+        write_data_frame_to_parquet(dim_transaction, 'dim_transaction')
+        write_data_frame_to_parquet(fact_purchase_order, 'fact_purchase_order')
+        write_data_frame_to_parquet(fact_payment, 'fact_payment')
+        write_data_frame_to_parquet(fact_sales_order, 'fact_sales_order')
+        
+        time_query = get_time_of_query()
+        log_timestamp = create_log_timestamp(time_query)
+        json_time = json.dumps(log_timestamp, indent=4, default=str)
+        write_json_to_bucket(
+                json_time,
+                'nc-de-awsome-processed-zone',
+                f'query_log.json' 
+            )
+        print(f'Transformation @{time_query} complete.')
+    except Exception as e:
+        raise TransformationError(f'{e}')
 
 # dim tables
 
@@ -230,8 +226,6 @@ def make_iso_format(timestamp):
 def generate_fact_purchase_order(purchase_order_df):
 
     purchase_order_df['created_at'] = pd.to_datetime(purchase_order_df['created_at'].map(lambda x: make_iso_format(x)))
-    print(purchase_order_df['created_at'])
-
     purchase_order_df['last_updated'] = pd.to_datetime(purchase_order_df['last_updated'].map(lambda x: make_iso_format(x)))
     purchase_order_df['created_date'] = purchase_order_df['created_at'].dt.date
     purchase_order_df['created_time'] = purchase_order_df['created_at'].dt.time
