@@ -27,8 +27,8 @@ mkdir -p deployment_zips/process_package/other_data
 
 cp ./other_data/currencies.csv ./deployment_zips/process_package/other_data/currencies.csv
 cp ./deploy_processed_lambda/lambda_handler.py ./deployment_zips/process_package/lambda_handler.py
-pip install pandas --no-deps --target deployment_zips/process_package/
-pip install numpy --no-deps --target deployment_zips/process_package/
+pip install pandas --target deployment_zips/process_package/
+# pip install numpy --no-deps --target deployment_zips/process_package/
 pip install pyarrow --no-deps --target deployment_zips/process_package/
 pip install pytz --target deployment_zips/process_package/
 

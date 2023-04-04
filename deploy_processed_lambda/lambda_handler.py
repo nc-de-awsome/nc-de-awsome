@@ -243,8 +243,8 @@ def generate_dim_transaction(transaction_df):
 
 def generate_fact_purchase_order(purchase_order_df):
 
-    purchase_order_df['created_date'] = pd.to_datetime(purchase_order_df['created_at'], format='%Y-%m-%d %H:%M:%S', errors='coerce').dt.date
-    purchase_order_df['created_time'] = pd.to_datetime(purchase_order_df['created_at'], format='%Y-%m-%d %H:%M:%S', errors='coerce').dt.date
+    purchase_order_df['created_date'] = pd.to_datetime(purchase_order_df['created_at'], format='%Y-%m-%d %H:%M:%S').dt.date
+    purchase_order_df['created_time'] = pd.to_datetime(purchase_order_df['created_at'], format='%Y-%m-%d %H:%M:%S').dt.date
     purchase_order_df.drop('created_at', axis=1, inplace=True)
 
     purchase_order_df['last_updated'] = pd.to_datetime(purchase_order_df['last_updated'])
@@ -253,8 +253,8 @@ def generate_fact_purchase_order(purchase_order_df):
     purchase_order_df.drop('last_updated', axis=1, inplace=True)
     purchase_order_df['purchase_record_id'] = purchase_order_df.index + 1
     
-    purchase_order_df['agreed_delivery_date'] = pd.to_datetime(purchase_order_df['agreed_delivery_date'], format='%Y-%m-%d %H:%M:%S', errors='coerce').dt.date
-    purchase_order_df['agreed_payment_date'] = pd.to_datetime(purchase_order_df['agreed_payment_date'], format='%Y-%m-%d %H:%M:%S', errors='coerce').dt.date
+    purchase_order_df['agreed_delivery_date'] = pd.to_datetime(purchase_order_df['agreed_delivery_date'], format='%Y-%m-%d %H:%M:%S').dt.date
+    purchase_order_df['agreed_payment_date'] = pd.to_datetime(purchase_order_df['agreed_payment_date'], format='%Y-%m-%d %H:%M:%S').dt.date
     return purchase_order_df.reindex(columns=[
             "purchase_record_id",
             "purchase_order_id",
