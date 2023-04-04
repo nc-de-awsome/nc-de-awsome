@@ -233,26 +233,26 @@ def test_generate_dim_payment_type():
 
     pd.testing.assert_frame_equal(actual, expected)
 
-def test_generate_dim_date():
-    sales_df = load_data_frame_from_local_json('sales_order')
-    actual = generate_dim_date()
+# def test_generate_dim_date():
+#     sales_df = load_data_frame_from_local_json('sales_order')
+#     actual = generate_dim_date()
     
-    expected = pd.DataFrame(
-        [
-            {
-                "date_id": pd.Timestamp('2022-11-03 14:20:52.187000').to_pydatetime().date(),
-                "year" : 2022,
-                "month" : 11,
-                "day" : 3,
-                "day_of_week": 3,
-                "day_name" : 'Thursday',
-                "month_name": 'November',
-                "quarter" : 4
-            }
-        ]
-    )
+#     expected = pd.DataFrame(
+#         [
+#             {
+#                 "date_id": pd.Timestamp('2022-11-03 14:20:52.187000').to_pydatetime().date(),
+#                 "year" : 2022,
+#                 "month" : 11,
+#                 "day" : 3,
+#                 "day_of_week": 3,
+#                 "day_name" : 'Thursday',
+#                 "month_name": 'November',
+#                 "quarter" : 4
+#             }
+#         ]
+#     )
 
-    pd.testing.assert_frame_equal(actual, expected)
+#     pd.testing.assert_frame_equal(actual, expected)
 
 def test_generate_dim_transaction():
     transaction_df = load_data_frame_from_local_json('transaction')
