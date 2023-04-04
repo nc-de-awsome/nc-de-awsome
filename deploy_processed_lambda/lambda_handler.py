@@ -221,8 +221,6 @@ def generate_dim_transaction(transaction_df):
 
 def generate_fact_purchase_order(purchase_order_df):
     
-    .. = pd.to_datetime(df['created_at']).map(lambda x: x.isoformat(timespec='milliseconds'))
-    
     purchase_order_df['created_at'] = pd.to_datetime(purchase_order_df['created_at']).map(lambda x: x.isoformat(timespec='milliseconds'))
     purchase_order_df['last_updated'] = pd.to_datetime(purchase_order_df['last_updated']).map(lambda x: x.isoformat(timespec='milliseconds'))
     purchase_order_df['created_date'] = purchase_order_df['created_at'].dt.date
