@@ -164,36 +164,50 @@ def generate_dim_payment_type(payment_type_df):
             ]
     ]
 
-def generate_dim_date(sales_order_df):
-    sales_timestamps=sales_order_df[
-        [
-            'created_at'
-        ]
-    ]
+# def generate_dim_date(sales_order_df):
+#     sales_timestamps=sales_order_df[
+#         [
+#             'created_at'
+#         ]
+#     ]
 
-    def create_datetime(timestamp):
-        return pd.to_datetime(
-            pd.Timestamp(timestamp).
-            to_pydatetime().
-            replace(microsecond=0)
-        )
+#     def create_datetime(timestamp):
+#         return pd.to_datetime(
+#             pd.Timestamp(timestamp).
+#             to_pydatetime().
+#             replace(microsecond=0)
+#         )
 
-    dicts = []
-    datetimes = [create_datetime(s[0]) for s in sales_timestamps.to_numpy()]
-    for date in datetimes:
-        dicts.append(
-                {
-                    'date_id' : date.date(),
-                    'year' : date.year,
-                    'month' : date.month,
-                    'day' : date.day,
-                    'day_of_week' : date.day_of_week,
-                    'day_name' : date.day_name(),
-                    'month_name' : date.month_name(),
-                    'quarter' : date.quarter
-            }
-        )
-    return pd.DataFrame.from_records(dicts).drop_duplicates(keep='first')
+#     dicts = []
+#     datetimes = [create_datetime(s[0]) for s in sales_timestamps.to_numpy()]
+#     for date in datetimes:
+#         dicts.append(
+#                 {
+#                     'date_id' : date.date(),
+#                     'year' : date.year,
+#                     'month' : date.month,
+#                     'day' : date.day,
+#                     'day_of_week' : date.day_of_week,
+#                     'day_name' : date.day_name(),
+#                     'month_name' : date.month_name(),
+#                     'quarter' : date.quarter
+#             }
+#         )
+#     return pd.DataFrame.from_records(dicts).drop_duplicates(keep='first')
+
+def generate_dim_date():
+    df = pd.DataFrame(pd.date_range('1/1/2010','12/31/2030'), columns=['date_id'])
+    df["date"] = df['date_id'].dt.date
+    df["year"] = df['date_id'].dt.year
+    df["month"] = df['date_id'].dt.month
+    df["day"] = df['date_id'].dt.day
+    df["day_of_week"] = df['date_id'].dt.weekday
+    df["day_name"] = df['date_id'].dt.strftime("%A")
+    df["month_name"] = df['date_id'].dt.strftime("%B")
+    df["quater"] = df["date_id"] = df.date_id.dt.quarter
+    df.drop("date_id", axis=1, inplace=True)
+
+    return df
 
 def generate_dim_transaction(transaction_df):
     
