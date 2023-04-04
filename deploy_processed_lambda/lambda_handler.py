@@ -35,6 +35,7 @@ def transform(event, context):
         dim_currency = generate_dim_currency(currency_df, currency_name_df)
         dim_payment_type = generate_dim_payment_type(payment_type_df)
         dim_transaction = generate_dim_transaction(transaction_df)
+
         print('1')
         fact_purchase_order = generate_fact_purchase_order(purchase_order_df)
         print('2')
@@ -219,8 +220,8 @@ def generate_dim_transaction(transaction_df):
 # fact tables
 
 def generate_fact_purchase_order(purchase_order_df):
-    purchase_order_df['created_at'] = pd.to_datetime(df['created_at']).map(lambda x: x.isoformat(timespec='milliseconds')).dt.date
-    purchase_order_df['last_updated'] = pd.to_datetime(df['last_updated']).map(lambda x: x.isoformat(timespec='milliseconds')).dt.time
+    purchase_order_df['created_at'] = pd.to_datetime(purchase_order_df['created_at']).map(lambda x: x.isoformat(timespec='milliseconds')).dt.date
+    purchase_order_df['last_updated'] = pd.to_datetime(purchase_order_df['last_updated']).map(lambda x: x.isoformat(timespec='milliseconds')).dt.time
     purchase_order_df['created_date'] = purchase_order_df['created_at'].dt.date
     purchase_order_df['created_time'] = purchase_order_df['created_at'].dt.time
     purchase_order_df.drop('created_at', axis=1, inplace=True)
