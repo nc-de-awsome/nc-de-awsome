@@ -31,7 +31,7 @@ def transform(event, context):
         dim_design = generate_dim_design(design_df)
         dim_location = generate_dim_location(address_df)
         dim_counterparty = generate_dim_counterparty(counterparty_df, address_df)
-        dim_date = generate_dim_date(sales_order_df)
+        dim_date = generate_dim_date()
         dim_currency = generate_dim_currency(currency_df, currency_name_df)
         dim_payment_type = generate_dim_payment_type(payment_type_df)
         dim_transaction = generate_dim_transaction(transaction_df)
