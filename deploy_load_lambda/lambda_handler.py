@@ -8,15 +8,15 @@ def load(event, context):
     conn = connect_to_database()
     start_time = datetime.now()
     print('start time: ', start_time)
-    print('deleting old data.from fact tables...')
+    print('deleting old data from fact tables...')
 
     #deleting data in fact tables
-    conn.run('''
-        DELETE FROM fact_payment;
-        DELETE FROM fact_sales_order;
-        DELETE FROM fact_purchase_orders;
-    '''
-    )
+    print('deleting fact_payment...')
+    conn.run('DELETE FROM fact_payment;')
+    print('deleting fact_sales_order...')
+    conn.run('DELETE FROM fact_sales_order;')
+    print('deleting fact_purchase_order...')
+    conn.run('DELETE FROM fact_purchase_orders;')
 
     print('loading parquet from s3...')
     print('loading counterparty parquet from s3...')
@@ -367,7 +367,7 @@ def load_data_frame_from_parquet_file(table_name):
         )
         print('response: ',response)
         response.download_fileobj(buffer)
-        print('filobj downloaded: ', buffer)
+        print('fileobj downloaded: ', buffer)
         df = pd.read_parquet(buffer)
         print('df read from parquet')
     except Exception:
