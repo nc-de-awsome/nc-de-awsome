@@ -7,8 +7,11 @@ Deployment of AWS resources via Terraform is automated using GitHub Actions and 
 
 ---
 
-## Platform Infrastructure
-### Ingestion Phase
+## ETL Infrastructure
+
+![etl-infrastructure](etl-infrastructure.png)
+
+### Extraction Phase
 A Python application deployed in AWS Lambda (hereinafter called "The Ingest Lambda") ingests all tables from the ToteSys database and stores them in an Amazon S3 bucket called **nc-de-awsome-ingestion-zone**. The Ingest Lambda runs on a schedule every 10 minutes according to an Amazon EventBridge rule and logs its progress to Amazon CloudWatch. Email alerts are triggered by using Amazon Simple Notification Service (SNS) in the event of errors.
 
 ### Transformation Phase
