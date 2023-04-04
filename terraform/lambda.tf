@@ -46,7 +46,7 @@ resource "aws_lambda_function" "load_lambda" {
   handler          = "lambda_handler.load"
   runtime          = "python3.9"
   source_code_hash = filebase64sha256("${path.module}/../deployment_zips/deploy_load_lambda.zip")
-  timeout          = 60
+  timeout          = 900
 }
 
 resource "aws_lambda_permission" "allow_s3_processed_zone_bucket" {

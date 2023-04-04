@@ -12,11 +12,11 @@ def load(event, context):
 
     #deleting data in fact tables
     print('deleting fact_payment...')
-    conn.run('DELETE FROM fact_payment;')
+    conn.run('TRUNCATE TABLE fact_payment;')
     print('deleting fact_sales_order...')
-    conn.run('DELETE FROM fact_sales_order;')
+    conn.run('TRUNCATE TABLE fact_sales_order;')
     print('deleting fact_purchase_order...')
-    conn.run('DELETE FROM fact_purchase_orders;')
+    conn.run('TRUNCATE TABLE fact_purchase_orders;')
 
     print('loading parquet from s3...')
     print('loading counterparty parquet from s3...')
