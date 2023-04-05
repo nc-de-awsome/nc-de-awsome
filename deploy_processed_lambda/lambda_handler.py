@@ -7,6 +7,7 @@ import boto3
 import io
 import pytz
 
+
 def transform(event, context):
     try:
         # load dataframes from ingestion bucket json files
@@ -17,7 +18,7 @@ def transform(event, context):
         counterparty_df = load_data_frame_from_json('counterparty')
         currency_df = load_data_frame_from_json('currency')
         payment_df = load_data_frame_from_json('payment')
-        transaction_df = load_data_frame_from_json('transaction') 
+        transaction_df = load_data_frame_from_json('transaction')
         payment_type_df = load_data_frame_from_json('payment_type')
         sales_order_df = load_data_frame_from_json('sales_order')
         purchase_order_df = load_data_frame_from_json('purchase_order')
@@ -52,22 +53,29 @@ def transform(event, context):
         write_data_frame_to_parquet(fact_purchase_order, 'fact_purchase_order')
         write_data_frame_to_parquet(fact_payment, 'fact_payment')
         write_data_frame_to_parquet(fact_sales_order, 'fact_sales_order')
-        
+
         time_query = get_time_of_query()
         log_timestamp = create_log_timestamp(time_query)
         json_time = json.dumps(log_timestamp, indent=4, default=str)
         write_json_to_bucket(
                 json_time,
                 'nc-de-awsome-processed-zone',
-                f'query_log.json' 
+                'query_log.json'
             )
         print(f'Transformation @{time_query} complete.')
     except Exception as e:
         raise TransformationError(f'{e}')
 
-# dim tables
 
+# dim tables
 def generate_dim_staff(staff_df, department_df):
+    '''Returns staff dim table joining staff and department dataframe.
+        parameters:
+            staff_df: dataframe with staff data.
+            department_df: dataframe with department data.
+        returns:
+            a dataframe for staff dim table.
+    '''
     return staff_df.join(
         department_df.set_index('department_id'),
         on = 'department_id',
@@ -83,7 +91,14 @@ def generate_dim_staff(staff_df, department_df):
         ]
     ]
 
+
 def generate_dim_design(design_df):
+    '''Returns design dim table.
+        parameters:
+            design_df: dataframe with design data.
+        returns:
+            a dataframe for design dim table.
+    '''
     return design_df[
         [
             'design_id',
@@ -93,15 +108,22 @@ def generate_dim_design(design_df):
         ]
     ]
 
+
 def generate_dim_location(address_df):
+    '''Returns location dim table.
+        parameters:
+            address_df: dataframe with address data.
+        returns:
+            a dataframe for location dim table.
+    '''
     return address_df[
         [
-            'address_id', 
-            'address_line_1', 
-            'address_line_2', 
-            'district', 
-            'city', 
-            'postal_code', 
+            'address_id',
+            'address_line_1',
+            'address_line_2',
+            'district',
+            'city',
+            'postal_code',
             'country',
             'phone'
         ]
@@ -111,7 +133,15 @@ def generate_dim_location(address_df):
         }
     )
 
+
 def generate_dim_counterparty(counterparty_df, address_df):
+    '''Returns counterparty dim table joins address and counterparty dataframe.
+        parameters:
+            counterparty_df: dataframe with counterparty data.
+            address_df: dataframe with address data.
+        returns:
+            a dataframe for counterparty dim table.
+    '''
     return counterparty_df.join(
         address_df.set_index('address_id'),
         on = 'legal_address_id',
@@ -119,7 +149,7 @@ def generate_dim_counterparty(counterparty_df, address_df):
     )[
         [
             'counterparty_id',
-            'counterparty_legal_name', 
+            'counterparty_legal_name',
             'address_line_1',
             'address_line_2',
             'district',
@@ -134,13 +164,21 @@ def generate_dim_counterparty(counterparty_df, address_df):
             'address_line_2' : 'counterparty_legal_address_line_2',
             'district' : 'counterparty_legal_district',
             'city' : 'counterparty_legal_city',
-            'postal_code' :'counterparty_legal_postal_code',
+            'postal_code' : 'counterparty_legal_postal_code',
             'country' : 'counterparty_legal_country',
             'phone' : 'counterparty_legal_phone_number'
         }
     )
 
+
 def generate_dim_currency(currency_df, currency_name_df):
+    '''Returns currency dim table joins currency and currency_name dataframe.
+        parameters:
+            currency_df: dataframe with currency data.
+            currency_name_df: dataframe with currency name data.
+        returns:
+            a dataframe for currency dim table.
+    '''
     return currency_df.join(
         currency_name_df.set_index('CurrencyCode'),
         on='currency_code'
@@ -156,13 +194,21 @@ def generate_dim_currency(currency_df, currency_name_df):
         }
     )
 
+
 def generate_dim_payment_type(payment_type_df):
+    '''Returns payment dim table.
+        parameters:
+            payment_type_df: dataframe with payment data.
+        returns:
+            a dataframe for payment_type dim table.
+    '''
     return payment_type_df[
             [
                 'payment_type_id',
                 'payment_type_name',
             ]
     ]
+
 
 # def generate_dim_date(sales_order_df):
 #     sales_timestamps=sales_order_df[
@@ -195,8 +241,15 @@ def generate_dim_payment_type(payment_type_df):
 #         )
 #     return pd.DataFrame.from_records(dicts).drop_duplicates(keep='first')
 
+
 def generate_dim_date():
-    df = pd.DataFrame(pd.date_range('1/1/2010','12/31/2030'), columns=['date_id'])
+    '''Returns date dim table.
+        parameters:
+            sales_order_df: dataframe with sales order data.
+        returns:
+            a dataframe for date dim table.
+    '''
+    df = pd.DataFrame(pd.date_range('11/1/2022', '4/30/2023'), columns=['date_id'])
     df["date"] = df['date_id'].dt.date
     df["year"] = df['date_id'].dt.year
     df["month"] = df['date_id'].dt.month
@@ -209,8 +262,14 @@ def generate_dim_date():
 
     return df
 
+
 def generate_dim_transaction(transaction_df):
-    
+    '''Returns transaction dim table.
+        parameters:
+            transaction_df: dataframe with transaction data.
+        returns:
+            a dataframe for transaction dim table.
+    '''
     return transaction_df.fillna(0)[
         [
             'transaction_id',
@@ -227,32 +286,39 @@ def generate_dim_transaction(transaction_df):
         }
     )
 
+
 # fact tables
-
 def make_iso_format(timestamp):
-        timestamp_str = str(timestamp)
-        if not '.' in timestamp_str:
-            timestamp_str += '.000001'
+    timestamp_str = str(timestamp)
 
-        new_timestamp = pd.Timestamp(timestamp_str)
-        return new_timestamp
+    if '.' not in timestamp_str:
+        timestamp_str += '.000001'
+
+    new_timestamp = pd.Timestamp(timestamp_str)
+
+    return new_timestamp
+
 
 def generate_fact_purchase_order(purchase_order_df):
-
+    '''Returns purchase_order fact table.
+        parameters:
+            purchase_order_df: dataframe with purchase order data.
+        returns:
+            a dataframe for purchase_order fact table with formatted dates.
+    '''
     purchase_order_df['created_at'] = pd.to_datetime(purchase_order_df['created_at'].map(lambda x: make_iso_format(x)))
     purchase_order_df['last_updated'] = pd.to_datetime(purchase_order_df['last_updated'].map(lambda x: make_iso_format(x)))
     purchase_order_df['created_date'] = purchase_order_df['created_at'].dt.date
     purchase_order_df['created_time'] = purchase_order_df['created_at'].dt.time
     purchase_order_df.drop('created_at', axis=1, inplace=True)
-
     purchase_order_df['last_updated'] = pd.to_datetime(purchase_order_df['last_updated'])
     purchase_order_df['last_updated_date'] = purchase_order_df['last_updated'].dt.date
     purchase_order_df['last_updated_time'] = purchase_order_df['last_updated'].dt.time
     purchase_order_df.drop('last_updated', axis=1, inplace=True)
     purchase_order_df['purchase_record_id'] = purchase_order_df.index + 1
-    
     purchase_order_df['agreed_delivery_date'] = pd.to_datetime(purchase_order_df['agreed_delivery_date'], format='%Y-%m-%d').dt.date
     purchase_order_df['agreed_payment_date'] = pd.to_datetime(purchase_order_df['agreed_payment_date'], format='%Y-%m-%d').dt.date
+
     return purchase_order_df.reindex(columns=[
             "purchase_record_id",
             "purchase_order_id",
@@ -272,18 +338,23 @@ def generate_fact_purchase_order(purchase_order_df):
         ]
     )
 
+
 def generate_fact_payment(payment_df):
+    '''Returns payment fact table.
+        parameters:
+            payment_df: dataframe with payment data.
+        returns:
+            a dataframe for payment fact table with formatted dates.
+    '''
     payment_df['payment_record_id'] = payment_df.index + 1
     payment_df['created_date'] = payment_df['created_at'].dt.date
     payment_df['created_time'] = payment_df['created_at'].dt.time
     payment_df.drop('created_at', axis=1, inplace=True)
-
     payment_df['last_updated'] = pd.to_datetime(payment_df['last_updated'])
     payment_df['last_updated_date'] = payment_df['last_updated'].dt.date
     payment_df['last_updated_time'] = payment_df['last_updated'].dt.time
     payment_df.drop('last_updated', axis=1, inplace=True)
     payment_df['payment_date'] = pd.to_datetime(payment_df['payment_date'], format='%Y-%m-%d').dt.date
-
     payment_df.drop(['counterparty_ac_number', 'company_ac_number'], axis=1, inplace=True)
 
     return payment_df.reindex(columns=[
@@ -303,7 +374,14 @@ def generate_fact_payment(payment_df):
     ]
     )
 
+
 def generate_fact_sales_order(sales_order_df):
+    '''Returns sales_order fact table.
+        parameters:
+            sales_order_df: dataframe with sales_order data.
+        returns:
+            a dataframe for sales_order fact table with formatted dates.
+    '''
     sales_order_df['sales_record_id'] = sales_order_df.index + 1
     sales_order_df['created_date'] = sales_order_df['created_at'].dt.date
     sales_order_df['created_time'] = sales_order_df['created_at'].dt.time
@@ -314,7 +392,6 @@ def generate_fact_sales_order(sales_order_df):
     sales_order_df.drop('last_updated', axis=1, inplace=True)
     sales_order_df['agreed_delivery_date'] = pd.to_datetime(sales_order_df['agreed_delivery_date'], format='%Y-%m-%d').dt.date
     sales_order_df['agreed_payment_date'] = pd.to_datetime(sales_order_df['agreed_payment_date'], format='%Y-%m-%d').dt.date
-
 
     return sales_order_df.reindex(columns=[
         'sales_record_id',
@@ -335,12 +412,12 @@ def generate_fact_sales_order(sales_order_df):
     ]
     ).rename(columns={'staff_id' : 'sales_staff_id'})
 
-# utilities
 
+# utilities
 # def update_forex_rates():
 #     '''Gets forex rates data, writes to file, and updates at approx 8am each day'''
 #     forex_log_path = './other_data/forex_rates_log.json'
-    
+
 #     now = datetime.now()
 
 #     try:
@@ -354,7 +431,7 @@ def generate_fact_sales_order(sales_order_df):
 #                     return
 #     except:
 #         print('Could not find/read forex rate log; will get forex rates')
-    
+
 #     currency_pairs=[
 #         'GBPUSD',
 #         'EURGBP',
@@ -362,30 +439,46 @@ def generate_fact_sales_order(sales_order_df):
 #         'USDEUR',
 #         'USDGBP',
 #     ]
-    
-#     rates = []
-#     # for cp in currency_pairs:
-#     #     response =requests.get(f'https://www.freeforexapi.com/api/live?pairs={cp}')
-#     #     rate = json.loads(response.text)['rates']
-#     #     dict = {cp : rate[cp]['rate'] }
-#     #     rates.append(dict)
 
-    with open('./other_data/forex_rates.json', 'w') as f:
-        f.write(json.dumps(rates, indent=4))
-    
-    with open(f'{forex_log_path}', 'w') as f:
-        info =   {'last_updated':now.timestamp()}
-        f.write(json.dumps(info))
-    
-    print('Updated forex rates')
+#     rates = []
+#     for cp in currency_pairs:
+#         response =requests.get(f'https://www.freeforexapi.com/api/live?pairs={cp}')
+#         rate = json.loads(response.text)['rates']
+#         dict = {cp : rate[cp]['rate'] }
+#         rates.append(dict)
+
+#     with open('./other_data/forex_rates.json', 'w') as f:
+#         f.write(json.dumps(rates, indent=4))
+
+#     with open(f'{forex_log_path}', 'w') as f:
+#         info =   {'last_updated':now.timestamp()}
+#         f.write(json.dumps(info))
+
+#     print('Updated forex rates')
+
 
 def load_data_frame_from_json(table_name):
+    '''Utility that returns a dataframe from json data.
+        parameters:
+            table_name (str): name of table to be loaded.
+        returns:
+            a dataframe for specified table name.
+    '''
     return pd.read_json(f'{s3_file_reader(table_name, fetch_log_timestamp())}')
+
 
 def load_data_frame_from_csv(filepath):
     return pd.read_csv(f'{filepath}')
 
+
 def write_data_frame_to_parquet(data_frame, file_name):
+    '''Utility that writes transformed data to parquet file in s3 bucket.
+        parameters:
+            data_frame: dataframe with data to write to parquet file in s3.
+            file_name (str): the name of the file once written to s3.
+        returns:
+            a response object confirming status of write.
+    '''
     response = None
     try:
         parquet_buffer = io.BytesIO()
@@ -397,7 +490,15 @@ def write_data_frame_to_parquet(data_frame, file_name):
         raise WriteError('Unable to write to s3')
     return response['ResponseMetadata']['HTTPStatusCode']
 
+
 def s3_file_reader(table_name, time_stamp):
+    '''Utility that reads data from json in s3.
+        parameters:
+            table_name (str): table name used in name of file to be read.
+            time_stamp (str): used in folder name of file to be read.
+        returns:
+            a decoded response object containing data from the json file.
+    '''
     response = None
     client = boto3.client('s3')
     try:
@@ -410,7 +511,14 @@ def s3_file_reader(table_name, time_stamp):
         raise ReadError('Unable to read JSON from s3 bucket (s3_file_reader)')
     return response['Body'].read().decode()
 
+
 def fetch_log_timestamp(key='query_log.json'):
+    '''Utility that reads a timestamp from a json file.
+        parameters:
+            key (str): name of file to be read.
+        returns:
+            a timestamp string of last successful query.
+    '''
     time_query_dict = None
     try:
         client = boto3.client('s3')
@@ -420,19 +528,37 @@ def fetch_log_timestamp(key='query_log.json'):
         raise ReadError('Unable to read JSON from s3 bucket (fetch_log_timestamp')
     return time_query_dict['last_successful_query']
 
+
 def get_time_of_query():
+    '''Utility that returns a string for formatted timestamp in specified timezone.'''
     tz = pytz.timezone('Europe/London')
     now = datetime.now(tz).strftime('%y-%m-%d %H:%M:%S')
     return now
 
+
 def create_log_timestamp(time_of_query):
+    '''Utility that returns a dict to be written to query_log.
+        parameters:
+            time_of_query (str): timestamp generated by get_time_of_query.
+        returns:
+            a dict representing time of most recent successful query.
+    '''
     obj = {
         "last_successful_query" : time_of_query
         # "Last query" : time_of_query,
     }
     return obj
 
+
 def write_json_to_bucket(json, bucket_name, key):
+    '''Utility that writes data to json file in s3 bucket.
+        parameters:
+            json (str): data to be written to the json file in s3.
+            bucket_name (str): s3 bucket where the file will be written.
+            key (str): the name of the file once written to s3.
+        returns:
+            a response object confirming status of write.
+    '''
     response = None
     try:
         s3 = boto3.client('s3')
@@ -441,16 +567,19 @@ def write_json_to_bucket(json, bucket_name, key):
         raise WriteError('Unable to write JSON to S3 bucket')
     return response
 
-# errors
 
+# errors
 class AwsomeError(Exception):
     pass
+
 
 class TransformationError(AwsomeError):
     pass
 
+
 class WriteError(AwsomeError):
     pass
+
 
 class ReadError(AwsomeError):
     pass
