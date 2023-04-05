@@ -249,7 +249,7 @@ def generate_dim_date():
         returns:
             a dataframe for date dim table.
     '''
-    df = pd.DataFrame(pd.date_range('1/1/2010', '12/31/2030'), columns=['date_id'])
+    df = pd.DataFrame(pd.date_range('11/1/2022', '4/30/2023'), columns=['date_id'])
     df["date"] = df['date_id'].dt.date
     df["year"] = df['date_id'].dt.year
     df["month"] = df['date_id'].dt.month
