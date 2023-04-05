@@ -6,63 +6,67 @@ import io
 
 
 def load(event, context):
-    conn = connect_to_database()
-    start_time = datetime.now()
-    print(start_time)
-    #deleting data in fact tables
-    conn.run('DELETE FROM fact_payment;')
-    conn.run('DELETE FROM fact_sales_order;')
-    conn.run('DELETE FROM fact_purchase_orders;')
+    try:
+        conn = connect_to_database()
+        start_time = datetime.now()
+        print(start_time)
+        #deleting data in fact tables
+        conn.run('DELETE FROM fact_payment;')
+        conn.run('DELETE FROM fact_sales_order;')
+        conn.run('DELETE FROM fact_purchase_orders;')
 
 
-    print('Loading parquet from s3')
-    dim_counterparty_df = load_data_frame_from_parquet_file('dim_counterparty')
-    dim_currency_df = load_data_frame_from_parquet_file('dim_currency')
-    dim_date_df = load_data_frame_from_parquet_file('dim_date')
-    dim_design_df = load_data_frame_from_parquet_file('dim_design')
-    dim_location_df = load_data_frame_from_parquet_file('dim_location') 
-    dim_payment_df = load_data_frame_from_parquet_file('dim_payment_type')
-    dim_staff_df = load_data_frame_from_parquet_file('dim_staff')
-    dim_transaction_df = load_data_frame_from_parquet_file('dim_transaction')
-    fact_sales_df = load_data_frame_from_parquet_file('fact_sales_order')
-    fact_purchase_df = load_data_frame_from_parquet_file('fact_purchase_order')
-    fact_payment_df = load_data_frame_from_parquet_file('fact_payment')
-    fact_sales_df.drop('sales_record_id', axis=1, inplace=True)
-    fact_purchase_df.drop('purchase_record_id', axis=1, inplace=True)
-    fact_payment_df.drop('payment_record_id', axis=1, inplace=True)
-    
-    print('converting pdataframe to nested lists')
-    counterpart_list = dataframe_to_list_of_row_values(dim_counterparty_df)
-    currency_list = dataframe_to_list_of_row_values(dim_currency_df)
-    date_list = dataframe_to_list_of_row_values(dim_date_df)
-    design_list = dataframe_to_list_of_row_values(dim_design_df)
-    location_list = dataframe_to_list_of_row_values(dim_location_df)
-    payment_list = dataframe_to_list_of_row_values(dim_payment_df)
-    staff_list = dataframe_to_list_of_row_values(dim_staff_df)
-    transaction_list = dataframe_to_list_of_row_values(dim_transaction_df)
-    fact_sales_list = dataframe_to_list_of_row_values(fact_sales_df)
-    fact_purchase_list = dataframe_to_list_of_row_values(fact_purchase_df)
-    fact_payment_list = dataframe_to_list_of_row_values(fact_payment_df)
-    
-    print('now inserting to database')
-    insert_dim_counterparty_to_dw(conn, counterpart_list)
-    insert_dim_currency_to_dw(conn, currency_list)
-    insert_dim_date_to_dw(conn, date_list)
-    insert_dim_design_to_dw(conn, design_list)
-    insert_dim_location_to_dw(conn, location_list)
-    insert_dim_payment_to_dw(conn, payment_list)
-    insert_dim_staff_to_dw(conn, staff_list)
-    insert_dim_transaction_to_dw(conn, transaction_list)
-    print('inserting facts now')
-    insert_fact_sales_order_to_dw(conn, fact_sales_list)
-    insert_fact_payment_order_to_dw(conn, fact_payment_list)
-    insert_fact_purchase_to_dw(conn, fact_purchase_list)
+        print('Loading parquet from s3')
+        dim_counterparty_df = load_data_frame_from_parquet_file('dim_counterparty')
+        dim_currency_df = load_data_frame_from_parquet_file('dim_currency')
+        dim_date_df = load_data_frame_from_parquet_file('dim_date')
+        dim_design_df = load_data_frame_from_parquet_file('dim_design')
+        dim_location_df = load_data_frame_from_parquet_file('dim_location') 
+        dim_payment_df = load_data_frame_from_parquet_file('dim_payment_type')
+        dim_staff_df = load_data_frame_from_parquet_file('dim_staff')
+        dim_transaction_df = load_data_frame_from_parquet_file('dim_transaction')
+        fact_sales_df = load_data_frame_from_parquet_file('fact_sales_order')
+        fact_purchase_df = load_data_frame_from_parquet_file('fact_purchase_order')
+        fact_payment_df = load_data_frame_from_parquet_file('fact_payment')
+        fact_sales_df.drop('sales_record_id', axis=1, inplace=True)
+        fact_purchase_df.drop('purchase_record_id', axis=1, inplace=True)
+        fact_payment_df.drop('payment_record_id', axis=1, inplace=True)
+        
+        print('converting pdataframe to nested lists')
+        counterpart_list = dataframe_to_list_of_row_values(dim_counterparty_df)
+        currency_list = dataframe_to_list_of_row_values(dim_currency_df)
+        date_list = dataframe_to_list_of_row_values(dim_date_df)
+        design_list = dataframe_to_list_of_row_values(dim_design_df)
+        location_list = dataframe_to_list_of_row_values(dim_location_df)
+        payment_list = dataframe_to_list_of_row_values(dim_payment_df)
+        staff_list = dataframe_to_list_of_row_values(dim_staff_df)
+        transaction_list = dataframe_to_list_of_row_values(dim_transaction_df)
+        fact_sales_list = dataframe_to_list_of_row_values(fact_sales_df)
+        fact_purchase_list = dataframe_to_list_of_row_values(fact_purchase_df)
+        fact_payment_list = dataframe_to_list_of_row_values(fact_payment_df)
+        
+        print('now inserting to database')
+        insert_dim_counterparty_to_dw(conn, counterpart_list)
+        insert_dim_currency_to_dw(conn, currency_list)
+        insert_dim_date_to_dw(conn, date_list)
+        insert_dim_design_to_dw(conn, design_list)
+        insert_dim_location_to_dw(conn, location_list)
+        insert_dim_payment_to_dw(conn, payment_list)
+        insert_dim_staff_to_dw(conn, staff_list)
+        insert_dim_transaction_to_dw(conn, transaction_list)
+        print('inserting facts now')
+        insert_fact_sales_order_to_dw(conn, fact_sales_list)
+        insert_fact_payment_order_to_dw(conn, fact_payment_list)
+        insert_fact_purchase_to_dw(conn, fact_purchase_list)
 
-    conn.close()
-    end_time = datetime.now()
-    print(end_time)
-    print(end_time - start_time, '<--- time elapsed')
-    print('load lambda complete')
+        conn.close()
+        end_time = datetime.now()
+        print(end_time)
+        print(end_time - start_time, '<--- time elapsed')
+        print('load lambda complete')
+    except Exception as e:
+        raise LoadError(f'e')
+
 
 # errors
 
@@ -77,6 +81,9 @@ class WriteError(AwsomeError):
     pass
 
 class ReadError(AwsomeError):
+    pass
+
+class LoadError(AwsomeError):
     pass
 
 # create fact tables
@@ -331,8 +338,8 @@ def load_data_frame_from_parquet_file(table_name):
         )
         response.download_fileobj(buffer)
         df = pd.read_parquet(buffer)
-    except Exception:
-        raise ReadError('Unable to read Parquet from s3 bucket')
+    except Exception as e:
+        raise ReadError(f'e')
     return df
 
 def dataframe_to_list_of_row_values(data_frame):
