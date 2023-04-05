@@ -547,7 +547,7 @@ def insert_fact_payment_order_to_dw(conn, data):
     conn.commit()
     cursor.close()
 
-print(connect_to_database().run('SELECT * FROM fact_purchase_orders limit 1'))
+# print(connect_to_database().run('SELECT * FROM fact_purchase_orders limit 1'))
 
 def _get_table_column_names(conn, table_name):
     '''Returns a list of column_name strings in table_name
