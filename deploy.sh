@@ -50,6 +50,7 @@ pip install pandas --target deployment_zips/load_package/
 pip install numpy --target deployment_zips/load_package/
 pip install pytz --target deployment_zips/load_package/
 pip install pg8000 --target deployment_zips/load_package/
+pip install pyarrow --no-deps --target deployment_zips/load_package/
 
 cd deployment_zips/load_package/
 zip -r ../deploy_load_lambda.zip .

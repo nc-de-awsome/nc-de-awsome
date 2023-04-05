@@ -64,7 +64,7 @@ def load(event, context):
         print(end_time - start_time, '<--- time elapsed')
         print('load lambda complete')
     except Exception as e:
-        raise LoadError(f'e')
+        raise LoadError(f'{e}')
 
 
 # errors
@@ -348,7 +348,7 @@ def load_data_frame_from_parquet_file(table_name):
         print('fileobj downloaded: ', buffer)
         df = pd.read_parquet(buffer)
     except Exception as e:
-        raise ReadError(f'e')
+        raise ReadError(f'{e}')
     return df
 
 def dataframe_to_list_of_row_values(data_frame):
