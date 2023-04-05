@@ -14,7 +14,6 @@ def load(event, context):
         conn.run('DELETE FROM fact_sales_order;')
         conn.run('DELETE FROM fact_purchase_orders;')
 
-
         print('Loading parquet from s3')
         dim_counterparty_df = load_data_frame_from_parquet_file('dim_counterparty')
         dim_currency_df = load_data_frame_from_parquet_file('dim_currency')
@@ -470,13 +469,15 @@ def insert_dim_staff_to_dw(conn, data):
 
 def insert_dim_transaction_to_dw(conn, data):
     cursor = conn.cursor()
+    print(len(conn.run('SELECT FROM dim_transaction;')), '<<<< dim_transaction_length')
+    conn.run('DELETE FROM dim_transaction;')
+    print(len(conn.run('SELECT FROM dim_transaction;')), '<<<< dim_transaction_length_after')
     sql = '''INSERT INTO dim_transaction (
             transaction_id,
             transaction_type,
             sales_order_id,
             purchase_order_id)
             VALUES (%s, %s, %s, %s);'''
-    conn.run('DELETE FROM dim_transaction;')
     cursor.executemany(sql, data)
     conn.commit()
     cursor.close()
