@@ -4,7 +4,6 @@ import boto3
 import pg8000
 import io
 
-
 def load(event, context):
     try:
         conn = connect_to_database()
@@ -329,14 +328,24 @@ def get_region():
 
 def load_data_frame_from_parquet_file(table_name):
     df = None
+    print(f'attempting to load {table_name} df...')
     try:
+        print('creating buffer...')
         buffer = io.BytesIO()
+        print('buffer created.')
+        print('accessing s3 client...')
         client = boto3.resource('s3')
+        print('s3 client accessed')
+        bucket = 'nc-de-awsome-processed-zone'
+        key = f'transformation_parquet/{table_name}.parquet'
+        print(f'bucket: {bucket} // key: transformation_parquet/{table_name}.parquet')
         response = client.Object(
-            'nc-de-awsome-processed-zone',
-            f'transformation_parquet/{table_name}.parquet'
+            bucket,
+            key
         )
+        print('response: ',response)
         response.download_fileobj(buffer)
+        print('fileobj downloaded: ', buffer)
         df = pd.read_parquet(buffer)
     except Exception as e:
         raise ReadError(f'e')
