@@ -47,6 +47,7 @@ mkdir -p deployment_zips/load_package
 
 cp ./deploy_load_lambda/lambda_handler.py ./deployment_zips/load_package/lambda_handler.py
 pip install pandas --target deployment_zips/load_package/
+pip install numpy --target deployment_zips/load_package/
 pip install pytz --target deployment_zips/load_package/
 pip install pg8000 --target deployment_zips/load_package/
 
