@@ -334,8 +334,6 @@ def load_data_frame_from_parquet_file(table_name):
     except Exception:
         raise ReadError('Unable to read Parquet from s3 bucket')
     return df
-        
-    
 
 def dataframe_to_list_of_row_values(data_frame):
     return data_frame.values.tolist()
