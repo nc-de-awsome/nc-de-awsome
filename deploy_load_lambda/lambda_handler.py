@@ -10,9 +10,9 @@ def load(event, context):
         start_time = datetime.now()
         print(start_time)
         #deleting data in fact tables
-        conn.run('DELETE FROM fact_payment;')
-        conn.run('DELETE FROM fact_sales_order;')
-        conn.run('DELETE FROM fact_purchase_orders;')
+        # conn.run('DELETE FROM fact_payment;')
+        # conn.run('DELETE FROM fact_sales_order;')
+        # conn.run('DELETE FROM fact_purchase_orders;')
 
 
         print('Loading parquet from s3')
