@@ -84,4 +84,3 @@ The following command will take down the deployment and terraform infrastructure
 terraform destroy
 # Destroys the project infrastructure and frees up the allocated resources
 ```
-
