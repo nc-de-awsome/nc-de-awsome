@@ -4,35 +4,51 @@ import boto3
 import pg8000
 import io
 
-
 def load(event, context):
     conn = connect_to_database()
     start_time = datetime.now()
-    print(start_time)
+    print('start time: ', start_time)
+    print('deleting old data from fact tables...')
+
     #deleting data in fact tables
-    conn.run('DELETE FROM fact_payment;')
-    conn.run('DELETE FROM fact_sales_order;')
-    conn.run('DELETE FROM fact_purchase_orders;')
+    # print('deleting fact_payment...')
+    # conn.run('DELETE FROM fact_payment;')
+    # print('deleting fact_sales_order...')
+    # conn.run('DELETE FROM fact_sales_order;')
+    # print('deleting fact_purchase_order...')
+    # conn.run('DELETE FROM fact_purchase_orders;')
 
-
-    print('Loading parquet from s3')
+    print('loading parquet from s3...')
+    print('loading counterparty parquet from s3...')
     dim_counterparty_df = load_data_frame_from_parquet_file('dim_counterparty')
+    print('loading currency parquet from s3...')
     dim_currency_df = load_data_frame_from_parquet_file('dim_currency')
+    print('loading dates parquet from s3...')
     dim_date_df = load_data_frame_from_parquet_file('dim_date')
+    print('loading design parquet from s3...')
     dim_design_df = load_data_frame_from_parquet_file('dim_design')
+    print('loading location parquet from s3...')
     dim_location_df = load_data_frame_from_parquet_file('dim_location') 
+    print('loading payment parquet from s3...')
     dim_payment_df = load_data_frame_from_parquet_file('dim_payment_type')
+    print('loading staff parquet from s3...')
     dim_staff_df = load_data_frame_from_parquet_file('dim_staff')
+    print('loading transaction parquet from s3...')
     dim_transaction_df = load_data_frame_from_parquet_file('dim_transaction')
+    print('loading sales parquet from s3...')
     fact_sales_df = load_data_frame_from_parquet_file('fact_sales_order')
+    print('loading purchase parquet from s3...')
     fact_purchase_df = load_data_frame_from_parquet_file('fact_purchase_order')
+    print('loading payment parquet from s3...')
     fact_payment_df = load_data_frame_from_parquet_file('fact_payment')
+   
+    # removing serial columns
     fact_sales_df.drop('sales_record_id', axis=1, inplace=True)
     fact_purchase_df.drop('purchase_record_id', axis=1, inplace=True)
     fact_payment_df.drop('payment_record_id', axis=1, inplace=True)
-    
-    print('converting pdataframe to nested lists')
-    counterpart_list = dataframe_to_list_of_row_values(dim_counterparty_df)
+
+    print('converting pandas dataframe to nested lists...')
+    counterparty_list = dataframe_to_list_of_row_values(dim_counterparty_df)
     currency_list = dataframe_to_list_of_row_values(dim_currency_df)
     date_list = dataframe_to_list_of_row_values(dim_date_df)
     design_list = dataframe_to_list_of_row_values(dim_design_df)
@@ -44,18 +60,30 @@ def load(event, context):
     fact_purchase_list = dataframe_to_list_of_row_values(fact_purchase_df)
     fact_payment_list = dataframe_to_list_of_row_values(fact_payment_df)
     
-    print('now inserting to database')
-    insert_dim_counterparty_to_dw(conn, counterpart_list)
+    print('now inserting to database...')
+    print('inserting dim_counterparty to database...')
+    insert_dim_counterparty_to_dw(conn, counterparty_list)
+    print('inserting dim_currency to database...')
     insert_dim_currency_to_dw(conn, currency_list)
+    print('inserting dim_date to database...')
     insert_dim_date_to_dw(conn, date_list)
+    print('inserting dim_design to database...')
     insert_dim_design_to_dw(conn, design_list)
+    print('inserting dim_location to database...')
     insert_dim_location_to_dw(conn, location_list)
+    print('inserting dim_payment to database...')
     insert_dim_payment_to_dw(conn, payment_list)
+    print('inserting dim_staff to database...')
     insert_dim_staff_to_dw(conn, staff_list)
+    print('inserting dim_transaction to database...')
     insert_dim_transaction_to_dw(conn, transaction_list)
+    
     print('inserting facts now')
+    print('inserting fact_sales_order to database...')
     insert_fact_sales_order_to_dw(conn, fact_sales_list)
+    print('inserting fact_payment_order to database...')
     insert_fact_payment_order_to_dw(conn, fact_payment_list)
+    print('inserting fact_purchase to database...')
     insert_fact_purchase_to_dw(conn, fact_purchase_list)
 
     conn.close()
@@ -322,15 +350,26 @@ def get_region():
 
 def load_data_frame_from_parquet_file(table_name):
     df = None
+    print(f'attempting to load {table_name} df...')
     try:
+        print('creating buffer...')
         buffer = io.BytesIO()
+        print('buffer created.')
+        print('accessing s3 client...')
         client = boto3.resource('s3')
+        print('s3 client accessed')
+        bucket = 'nc-de-awsome-processed-zone'
+        key = f'transformation_parquet/{table_name}.parquet'
+        print(f'bucket: {bucket} // key: transformation_parquet/{table_name}.parquet')
         response = client.Object(
-            'nc-de-awsome-processed-zone',
-            f'transformation_parquet/{table_name}.parquet'
+            bucket,
+            key
         )
+        print('response: ',response)
         response.download_fileobj(buffer)
+        print('fileobj downloaded: ', buffer)
         df = pd.read_parquet(buffer)
+        print('df read from parquet')
     except Exception:
         raise ReadError('Unable to read Parquet from s3 bucket')
     return df
