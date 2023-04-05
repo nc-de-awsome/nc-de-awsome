@@ -33,7 +33,7 @@ def load(event, context):
         print('converting pdataframe to nested lists')
         counterpart_list = dataframe_to_list_of_row_values(dim_counterparty_df)
         currency_list = dataframe_to_list_of_row_values(dim_currency_df)
-        date_list = dataframe_to_list_of_row_values(dim_date_df)[:5]
+        date_list = dataframe_to_list_of_row_values(dim_date_df)
         design_list = dataframe_to_list_of_row_values(dim_design_df)
         location_list = dataframe_to_list_of_row_values(dim_location_df)
         payment_list = dataframe_to_list_of_row_values(dim_payment_df)
