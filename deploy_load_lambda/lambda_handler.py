@@ -10,9 +10,9 @@ def load(event, context):
         start_time = datetime.now()
         print(start_time)
         #deleting data in fact tables
-        # conn.run('DELETE FROM fact_payment;')
-        # conn.run('DELETE FROM fact_sales_order;')
-        # conn.run('DELETE FROM fact_purchase_orders;')
+        conn.run('DELETE FROM fact_payment;')
+        conn.run('DELETE FROM fact_sales_order;')
+        conn.run('DELETE FROM fact_purchase_orders;')
 
 
         print('Loading parquet from s3')
@@ -46,16 +46,25 @@ def load(event, context):
         
         print('now inserting to database')
         insert_dim_counterparty_to_dw(conn, counterpart_list)
+        print('now inserting to dim_currency')
         insert_dim_currency_to_dw(conn, currency_list)
+        print('now inserting to dim_date')
         insert_dim_date_to_dw(conn, date_list)
+        print('now inserting to dim_design')
         insert_dim_design_to_dw(conn, design_list)
+        print('now inserting to dim_location')
         insert_dim_location_to_dw(conn, location_list)
+        print('now inserting to dim_payment')
         insert_dim_payment_to_dw(conn, payment_list)
+        print('now inserting to dim_staff')
         insert_dim_staff_to_dw(conn, staff_list)
+        print('now inserting to dim_transaction')
         insert_dim_transaction_to_dw(conn, transaction_list)
-        print('inserting facts now')
+        print('inserting facts_sales now')
         insert_fact_sales_order_to_dw(conn, fact_sales_list)
+        print('inserting facts_payment now')
         insert_fact_payment_order_to_dw(conn, fact_payment_list)
+        print('inserting facts_purchase now')
         insert_fact_purchase_to_dw(conn, fact_purchase_list)
 
         conn.close()
@@ -537,7 +546,7 @@ def insert_fact_payment_order_to_dw(conn, data):
     conn.commit()
     cursor.close()
 
-# print(connect_to_database().run('SELECT * FROM fact_purchase_orders limit 1'))
+print(connect_to_database().run('SELECT * FROM fact_purchase_orders limit 1'))
 
 def _get_table_column_names(conn, table_name):
     '''Returns a list of column_name strings in table_name
